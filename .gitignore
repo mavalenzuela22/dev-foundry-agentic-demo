@@ -1,0 +1,110 @@
+# Dev Foundry Agentic Demo
+# Ignore local editor, OS, dependency, build, test, and secret files.
+
+# Operating system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# Editor and IDE local state
+.vscode/*
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.local
+secrets/
+credentials/
+
+# Node / JavaScript dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Package manager caches
+.npm/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Build outputs
+dist/
+build/
+out/
+public/build/
+.tmp/
+tmp/
+temp/
+.cache/
+.parcel-cache/
+.vite/
+.next/
+.nuxt/
+.svelte-kit/
+
+# Test and coverage outputs
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+vitest-report/
+junit.xml
+
+# Logs
+logs/
+*.log
+
+# TypeScript and tooling cache
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# Runtime databases and local storage
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Python cache, useful if helper scripts are added later
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local MCP / agent scratch artifacts
+.mcp-cache/
+.mcp-logs/
+.agent-cache/
+.agent-logs/
+.alita-local/
+.elitea-local/
+
+# Demo scratch files
+scratch/
+artifacts/tmp/
+artifacts/local/
