@@ -1,0 +1,36 @@
+# Source-of-Truth Map
+
+> Honesty note (retroactive hardening): This source-of-truth spine was created after Agentic Slice 001 as Spec-Driven Development (SDD) hardening. It formalizes validated behavior and establishes the baseline for future source-of-truth-first execution.
+
+## Spine (Agentic Slice 001)
+
+- Spec: `docs/40-specs/SPC-001-foundry-request-classification.md`
+- Task: `docs/50-tasks/TSK-001-documentation-only-classifier.md`
+- Micro-task pack: `docs/60-microtasks/MTP-001-documentation-only-classifier.md`
+
+## Product intent anchors
+
+- Product direction: `docs/00-product/product-direction.md`
+- Demo guardrails: `docs/20-governance/demo-guardrails.md`
+
+## Implementation (validated in Slice 001)
+
+- Classifier implementation: `src/requestClassifier.js`
+- Jest-style tests (not executed; static inspection only): `tests/requestClassifier.test.js`
+
+## Validation evidence (Slice 001)
+
+- Slice summary: `docs/30-validation/agentic-slice-001-summary.md`
+- Commit review (artifact attribution + behavior summary): `docs/30-validation/code-author-commit-review-e953f5a.md`
+- Validator report (static inspection): `docs/30-validation/validator-smoke-test-001.md`
+
+## Traceability (minimal)
+
+- `SPC-001` -> `TSK-001` -> `MTP-001`
+- `SPC-001` -> implementation: `src/requestClassifier.js`, `tests/requestClassifier.test.js`
+- `SPC-001` -> validation evidence: `docs/30-validation/validator-smoke-test-001.md`
+
+## Notes / constraints captured
+
+- Runtime test execution is intentionally out of scope for Slice 001 (no `package.json` / test runner). Validation was performed by static inspection.
+- The classifier is deterministic and keyword/regex based; ambiguous requests route to `needs_review`.
