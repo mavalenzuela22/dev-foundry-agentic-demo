@@ -17,6 +17,7 @@ function detectDocumentationSignals(normalizedText) {
   // Examples: "update docs", "README", "documentation".
   const docPatterns = [
     /\bdoc(s|umentation)?\b/,
+    /\bdocumentaci[oó]n\b/,
     /\breadme\b/,
     /\bchangelog\b/,
     /\bcontributing\b/,
