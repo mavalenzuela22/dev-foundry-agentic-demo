@@ -2,75 +2,75 @@
 
 ## Purpose
 
-This hardening note defines how the Dev Foundry Orchestrator should handle terse user commands such as:
+This hardening note defines how the Dev Foundry Orchestrator handles terse user commands such as:
 
 - `ejecuta MT-002 del MTP-002`
 - `execute MT-003 from MTP-002`
 - `run MT-005`
+- `ejecuta el siguiente MT del MTP-002`
 
 The goal is to support realistic low-friction user behavior without requiring users to provide repository paths, handoff packages, allowed files, forbidden files, or acceptance criteria when those details already exist in the MTP.
 
-## Rule
+## Core Rule
 
-When a user references an MT/MTP shorthand, the Orchestrator must first resolve the selected MTP and selected MT before asking what execution means.
-
-The Orchestrator must not assume that `execute` means implementation or code changes.
+When a user references an MT/MTP shorthand, the Orchestrator must first resolve the MTP and selected MT before asking broad clarification questions.
 
 The selected MT owner determines the next child agent.
 
-## Expected Resolution Behavior
+Do not assume that the word `execute` always means implementation or code changes.
 
-1. Resolve the MTP reference.
-   - `MTP-002` should normally resolve to a file under `docs/60-microtasks/` whose filename starts with `MTP-002`.
-   - If exactly one matching MTP exists, use it.
-   - If multiple matching MTPs exist, ask the user to choose.
-   - If no matching MTP exists, ask for the MTP path.
+## MTP Resolution
 
-2. Resolve the selected MT id inside the MTP.
-   - Example: `MT-002` inside `MTP-002`.
-   - If the MT is not found, ask for clarification.
-
-3. Determine the owner agent from the selected MT.
-   - If owner is Governance Agent, route to Governance Agent.
-   - If owner is Source-of-Truth Author, route to Source-of-Truth Author.
-   - If owner is Code Author, route to Code Author only after a relevant Governance APPROVED decision exists.
-   - If owner is Validator, route to Validator only when required prior evidence exists.
-
-4. Do not execute sibling MTs.
-
-5. Do not ask the user for allowed files, forbidden files, or acceptance criteria if the selected MT already contains them.
+- `MTP-002` normally resolves to a file under `docs/60-microtasks/` whose filename starts with `MTP-002`.
+- If exactly one matching MTP exists, use it.
+- If multiple matching MTPs exist, ask the user to choose.
+- If no matching MTP exists, ask for the MTP path.
 
 ## Repository Context Rule
 
-If the conversation has an active repository root, use it.
+- If the conversation has an active repository root, use it.
+- If the Orchestrator has an active or default repository configured, use it.
+- If no active/default repository is available, use `list_allowed_directories` when available.
+- If `list_allowed_directories` returns exactly one directory, use that directory as the candidate repository root for MTP resolution.
+- If multiple directories exist, inspect only enough to identify which one contains the requested MTP by standard path convention, or ask the user to choose if multiple candidates match.
+- Do not ask for repository root when exactly one allowed directory is available.
 
-If the Orchestrator has an active or default repository configured, use it.
+## Selected MT Resolution
 
-If no active or default repository is available, the Orchestrator should call or delegate a minimal allowed-directory check when tool access allows it.
+When the user names a specific MT, read the resolved MTP and find that MT id.
 
-If `list_allowed_directories` returns exactly one directory, use that directory as the candidate repository root for MTP resolution.
+When the user asks for `the next MT`, `siguiente MT`, `next task`, or equivalent:
 
-If `list_allowed_directories` returns multiple directories, inspect only enough to identify which one contains the requested MTP by the standard path convention, or ask the user to choose if multiple candidates match.
+1. Read the resolved MTP.
+2. Find micro-task checkbox entries in document order.
+3. Treat `[x]` or `[X]` as completed.
+4. Treat `[ ]` as pending.
+5. Select the first pending `[ ]` MT.
+6. Do not ask `next relative to which MT` if the MTP contains checkbox state.
+7. If no pending MT exists, report that the MTP has no pending MT.
+8. If checkbox state cannot be parsed safely, ask for clarification and cite the ambiguity.
 
-If `list_allowed_directories` returns no usable directory, or if the Orchestrator cannot access an allowed-directory check, ask only for the repository root or repository identifier.
+Example:
 
-Do not ask whether `execute` means code implementation until after the selected MT is resolved and its owner/purpose are known.
+- `[x] MT-001`
+- `[x] MT-002`
+- `[ ] MT-003`
+- `[ ] MT-004`
 
-## Good Behavior
+In that state, `ejecuta el siguiente MT del MTP-002` means `MT-003`.
 
-User:
+## Owner Routing
 
-`ejecuta mt-002 del MTP-002`
+After resolving the selected MT, route by owner:
 
-Expected Orchestrator behavior:
+- Governance Agent -> send the selected MT package to Governance.
+- Source-of-Truth Author -> send the selected MT package to Source-of-Truth Author.
+- Code Author -> send to Code Author only after a relevant Governance APPROVED decision exists.
+- Validator -> send to Validator only when required prior evidence exists.
 
-1. Resolve repository root from active context, default repo, or single allowed directory.
-2. Resolve `MTP-002` to `docs/60-microtasks/MTP-002-security-request-classification-delta.md`.
-3. Read `MT-002`.
-4. Detect that owner is Governance Agent.
-5. Delegate the selected MT package to Governance Agent.
-6. Do not call Code Author.
-7. Do not modify implementation or tests.
+Do not execute sibling MTs.
+
+Do not ask the user for allowed files, forbidden files, or acceptance criteria if the selected MT already contains them.
 
 ## Bad Behavior
 
@@ -80,29 +80,27 @@ Do not respond with broad questions such as:
 - What are the allowed files?
 - What are the forbidden files?
 - What are the acceptance criteria?
-
-Do not ask for repository root when there is exactly one allowed directory available from the filesystem tool.
-
-Those answers should come from the selected MT or the runtime environment whenever possible.
+- Which MT is next?
+- Next relative to which MT?
 
 ## Minimal Missing Information Rule
 
-If something is missing, ask only for the smallest missing piece.
+Ask only for the smallest missing piece:
 
-Examples:
-
-- If repository root is missing and no active/default/single-allowed-directory context is available, ask only for repository root.
-- If multiple MTP-002 files exist, ask only which MTP-002 to use.
-- If MT-002 is missing inside the resolved MTP, report that specific gap.
+- If no repo context and no allowed directory are available, ask only for repo root.
+- If multiple MTP files match, ask only which MTP to use.
+- If the selected MT is missing, report that specific gap.
+- If all MTs are complete, report that there is no pending MT.
 
 ## Output Addition
 
-When shorthand routing is used, include a `Micro-task Routing Summary` section in the Orchestrator report:
+When shorthand routing is used, include `Micro-task Routing Summary`:
 
 - MTP reference received
 - resolved repository root or candidate repository root
 - resolved MTP path
-- selected MT id
+- selected MT id or next pending MT id
 - selected MT owner agent
 - selected MT purpose
 - whether repository context was inferred or requested
+- checkbox-state basis when `next MT` was requested
