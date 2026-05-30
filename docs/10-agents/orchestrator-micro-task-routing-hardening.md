@@ -46,7 +46,13 @@ If the conversation has an active repository root, use it.
 
 If the Orchestrator has an active or default repository configured, use it.
 
-If no active or default repository is available, ask only for the repository root or repository identifier.
+If no active or default repository is available, the Orchestrator should call or delegate a minimal allowed-directory check when tool access allows it.
+
+If `list_allowed_directories` returns exactly one directory, use that directory as the candidate repository root for MTP resolution.
+
+If `list_allowed_directories` returns multiple directories, inspect only enough to identify which one contains the requested MTP by the standard path convention, or ask the user to choose if multiple candidates match.
+
+If `list_allowed_directories` returns no usable directory, or if the Orchestrator cannot access an allowed-directory check, ask only for the repository root or repository identifier.
 
 Do not ask whether `execute` means code implementation until after the selected MT is resolved and its owner/purpose are known.
 
@@ -58,12 +64,13 @@ User:
 
 Expected Orchestrator behavior:
 
-1. Resolve `MTP-002` to `docs/60-microtasks/MTP-002-security-request-classification-delta.md`.
-2. Read `MT-002`.
-3. Detect that owner is Governance Agent.
-4. Delegate the selected MT package to Governance Agent.
-5. Do not call Code Author.
-6. Do not modify implementation or tests.
+1. Resolve repository root from active context, default repo, or single allowed directory.
+2. Resolve `MTP-002` to `docs/60-microtasks/MTP-002-security-request-classification-delta.md`.
+3. Read `MT-002`.
+4. Detect that owner is Governance Agent.
+5. Delegate the selected MT package to Governance Agent.
+6. Do not call Code Author.
+7. Do not modify implementation or tests.
 
 ## Bad Behavior
 
@@ -74,7 +81,9 @@ Do not respond with broad questions such as:
 - What are the forbidden files?
 - What are the acceptance criteria?
 
-Those answers should come from the selected MT whenever possible.
+Do not ask for repository root when there is exactly one allowed directory available from the filesystem tool.
+
+Those answers should come from the selected MT or the runtime environment whenever possible.
 
 ## Minimal Missing Information Rule
 
@@ -82,7 +91,7 @@ If something is missing, ask only for the smallest missing piece.
 
 Examples:
 
-- If repository root is missing and no default is configured, ask only for repository root.
+- If repository root is missing and no active/default/single-allowed-directory context is available, ask only for repository root.
 - If multiple MTP-002 files exist, ask only which MTP-002 to use.
 - If MT-002 is missing inside the resolved MTP, report that specific gap.
 
@@ -91,6 +100,7 @@ Examples:
 When shorthand routing is used, include a `Micro-task Routing Summary` section in the Orchestrator report:
 
 - MTP reference received
+- resolved repository root or candidate repository root
 - resolved MTP path
 - selected MT id
 - selected MT owner agent
