@@ -45,7 +45,7 @@ When an agent completes an MT, they must:
     - `docs/40-specs/SPC-001-foundry-request-classification.md`
     - `docs/50-tasks/TSK-002-security-request-classification-delta.md`
 
-- [ ] MT-002 - Governance approval for bounded implementation scope
+- [x] MT-002 - Governance approval for bounded implementation scope
   - Owner agent: Governance Agent
   - Status: pending
   - Purpose:
@@ -74,6 +74,18 @@ When an agent completes an MT, they must:
       - any identified UNKNOWNs that must be resolved before MT-003 starts
   - Expected evidence:
     - Updated MT-002 checkbox + an Evidence note directly under MT-002.
+  - Evidence:
+    - Decision: **APPROVE**
+    - Allowed implementation files (for MT-003 / MT-004):
+      - `src/requestClassifier.js`
+      - `tests/requestClassifier.test.js`
+    - Forbidden scope reminders:
+      - No other `src/**` or `tests/**` edits.
+      - No new deps or config; no `package.json` / runner setup; no UI changes.
+      - Preserve determinism: no I/O, time/date, randomness.
+    - Preconditions / UNKNOWNs (must be resolved during MT-003 by reusing existing classifier conventions):
+      - How “documentation intent” is detected in request text (e.g., `doc`, `documentation`, `documentación`).
+      - Confirm matching rules: case-insensitive behavior and tokenization/substring strategy (including accent handling for terms like `remediación`).
 
 - [ ] MT-003 - Implement security delta in request classifier
   - Owner agent: Code Author
