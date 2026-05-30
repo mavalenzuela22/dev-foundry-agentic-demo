@@ -35,6 +35,8 @@ function detectDocumentationSignals(normalizedText) {
 
 function detectCodeSignals(normalizedText) {
   // Any explicit non-documentation work should prevent documentation-only classification.
+  // NOTE: security-related handling is implemented separately (see detectSecuritySignals)
+  // to allow the doc-only security exception to take precedence.
   const codePatterns = [
     /\bcode\b/,
     /\bimplement\b/,
@@ -54,7 +56,6 @@ function detectCodeSignals(normalizedText) {
     /\bunit test(s)?\b/,
     /\bintegration test(s)?\b/,
     /\bperformance\b/,
-    /\bsecurity\b/,
     /\bconfig(uration)?\b/,
     /\bpackage\.json\b/,
     /\bdependency|dependencies\b/,
@@ -81,12 +82,72 @@ function detectCodeSignals(normalizedText) {
   return codePatterns.some((re) => re.test(withoutFixTypo));
 }
 
+function detectSecuritySignals(normalizedText) {
+  // Security signals per SPC-001 delta (case-insensitive substring match).
+  const securitySignals = [
+    'security',
+    'seguridad',
+    'ciberseguridad',
+    'vulnerability',
+    'vulnerabilidad',
+    'hardening'
+  ];
+
+  return securitySignals.some((signal) => normalizedText.includes(signal));
+}
+
+function detectSecurityDocOnlyExceptionNegatives(normalizedText) {
+  // If any of these appear, the doc-only security exception must NOT apply.
+  // Use regexes with word boundaries where appropriate to reduce accidental matches.
+  const negativePatterns = [
+    /remediaci[oó]n/, // remediación / remediacion
+    /\bvulnerabilidad\b/,
+    /\bhardening\b/,
+    /implementaci[oó]n/, // implementación / implementacion
+    /\bendpoint\b/,
+    /\bapi\b/,
+    /\bauth\b/,
+    /\bpermisos\b/
+  ];
+
+  return negativePatterns.some((re) => re.test(normalizedText));
+}
+
 function classifyRequest(requestText) {
   const text = typeof requestText === 'string' ? requestText : '';
   const normalized = text.toLowerCase();
 
   const hasDocSignals = detectDocumentationSignals(normalized);
   const hasCodeSignals = detectCodeSignals(normalized);
+  const hasSecuritySignals = detectSecuritySignals(normalized);
+
+  // Doc-only security exception MUST have precedence over security escalation.
+  // Condition: doc intent + security signal + no negatives + no explicit code intent.
+  if (
+    hasDocSignals &&
+    hasSecuritySignals &&
+    !hasCodeSignals &&
+    !detectSecurityDocOnlyExceptionNegatives(normalized)
+  ) {
+    return {
+      type: 'documentation',
+      risk: 'low',
+      mode: 'bounded_execution_ready',
+      reason:
+        'Documentation-only security request (no remediation/implementation intent detected) is low risk and bounded execution ready.'
+    };
+  }
+
+  // Default security escalation (unless exception applied above).
+  if (hasSecuritySignals) {
+    return {
+      type: 'code',
+      risk: 'medium',
+      mode: 'needs_review',
+      reason:
+        'Security-related request detected; defaulting to code classification and needs_review for safety.'
+    };
+  }
 
   if (hasDocSignals && !hasCodeSignals) {
     return {
