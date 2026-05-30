@@ -87,7 +87,7 @@ When an agent completes an MT, they must:
       - How “documentation intent” is detected in request text (e.g., `doc`, `documentation`, `documentación`).
       - Confirm matching rules: case-insensitive behavior and tokenization/substring strategy (including accent handling for terms like `remediación`).
 
-- [ ] MT-003 - Implement security delta in request classifier
+- [x] MT-003 - Implement security delta in request classifier
   - Owner agent: Code Author
   - Status: pending
   - Purpose:
@@ -147,6 +147,12 @@ When an agent completes an MT, they must:
       - touched file: `src/requestClassifier.js`
       - brief summary of logic change and how precedence is ensured
       - answers to UNKNOWNs above (or notes if unresolved)
+  - Evidence:
+    - MT-003 completed by Code Author.
+    - Commit: 49fa23efef1e0fd9faa3daeca65bb41a58dde776
+    - Touched file: src/requestClassifier.js
+    - Summary: implemented security signal detection, doc-only security exception precedence, and default security escalation to code/medium/needs_review.
+    - No dependencies, runtime config, I/O, randomness, tests, or deployment files changed.
 
 - [ ] MT-004 - Add/adjust Jest-style tests for security delta
   - Owner agent: Code Author
