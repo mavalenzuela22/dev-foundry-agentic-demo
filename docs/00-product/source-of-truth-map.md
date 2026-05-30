@@ -24,6 +24,11 @@
 - Commit review (artifact attribution + behavior summary): `docs/30-validation/code-author-commit-review-e953f5a.md`
 - Validator report (static inspection): `docs/30-validation/validator-smoke-test-001.md`
 
+## Validation evidence (Slice 002)
+
+- Slice summary: `docs/30-validation/agentic-slice-002-security-delta-summary.md`
+- Documentation closure MTP (retroactive hardening): `docs/60-microtasks/MTP-003-slice-002-security-delta-summary-template-alignment.md`
+
 ## Traceability (minimal)
 
 - `SPC-001` -> `TSK-001` -> `MTP-001`
