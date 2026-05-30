@@ -19,6 +19,22 @@ The selected MT owner determines the next child agent.
 
 Do not assume that the word `execute` always means implementation or code changes.
 
+## Resolver Delegation Rule
+
+The Orchestrator may not have direct filesystem tools.
+
+If the Orchestrator cannot directly resolve repository root, MTP path, selected MT, or next pending MT, it must delegate that read-only resolution to Context Analyst instead of asking the user for repo root immediately.
+
+The Context Analyst resolver handoff should ask for:
+
+- allowed directories check,
+- candidate repository root inference,
+- MTP resolution by standard path convention,
+- selected MT or next pending MT resolution,
+- selected MT owner, purpose, allowed files, forbidden scope, acceptance criteria, expected evidence, and preconditions.
+
+Only ask the user for repository root if Context Analyst also cannot infer it from active context, default context, or allowed directories.
+
 ## MTP Resolution
 
 - `MTP-002` normally resolves to a file under `docs/60-microtasks/` whose filename starts with `MTP-002`.
@@ -30,10 +46,11 @@ Do not assume that the word `execute` always means implementation or code change
 
 - If the conversation has an active repository root, use it.
 - If the Orchestrator has an active or default repository configured, use it.
-- If no active/default repository is available, use `list_allowed_directories` when available.
+- If no active/default repository is available and the Orchestrator has direct filesystem read tools, use `list_allowed_directories` when available.
+- If no active/default repository is available and the Orchestrator does not have direct filesystem read tools, delegate repo/MTP/MT resolution to Context Analyst.
 - If `list_allowed_directories` returns exactly one directory, use that directory as the candidate repository root for MTP resolution.
 - If multiple directories exist, inspect only enough to identify which one contains the requested MTP by standard path convention, or ask the user to choose if multiple candidates match.
-- Do not ask for repository root when exactly one allowed directory is available.
+- Do not ask for repository root when exactly one allowed directory is available through the Orchestrator or Context Analyst.
 
 ## Selected MT Resolution
 
@@ -82,12 +99,13 @@ Do not respond with broad questions such as:
 - What are the acceptance criteria?
 - Which MT is next?
 - Next relative to which MT?
+- What is the repo root? before attempting Context Analyst resolver delegation when direct filesystem access is unavailable.
 
 ## Minimal Missing Information Rule
 
 Ask only for the smallest missing piece:
 
-- If no repo context and no allowed directory are available, ask only for repo root.
+- If no repo context exists and neither the Orchestrator nor Context Analyst can infer an allowed directory, ask only for repo root.
 - If multiple MTP files match, ask only which MTP to use.
 - If the selected MT is missing, report that specific gap.
 - If all MTs are complete, report that there is no pending MT.
@@ -97,6 +115,7 @@ Ask only for the smallest missing piece:
 When shorthand routing is used, include `Micro-task Routing Summary`:
 
 - MTP reference received
+- resolver used: direct Orchestrator read, Context Analyst, active context, or user-provided
 - resolved repository root or candidate repository root
 - resolved MTP path
 - selected MT id or next pending MT id
