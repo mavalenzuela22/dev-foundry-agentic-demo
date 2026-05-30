@@ -6,6 +6,24 @@ The goal is to test a small governed agent system against a simple application n
 
 Foundry Request Board is the guinea pig app. The real subject is whether specialized agents can inspect, decide, modify, validate, and report under Dev Foundry rules.
 
+## Requirements
+
+- Node.js **20 LTS+** (see `package.json` `engines.node`)
+
+## Quickstart
+
+```bash
+npm ci
+npm test
+```
+
+If you are not using lockfile-driven installs:
+
+```bash
+npm install
+npm test
+```
+
 ## Documentation
 
 - `docs/00-product/product-direction.md`
@@ -20,4 +38,4 @@ Foundry Request Board is the guinea pig app. The real subject is whether special
 
 Repository structure and agent instructions are being bootstrapped.
 
-Implementation of the guinea pig app has not started yet.
+The Foundry Request Board sample code is intentionally minimal and includes a Jest test suite (run via `npm test`).

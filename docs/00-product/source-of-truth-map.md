@@ -8,6 +8,13 @@
 - Task: `docs/50-tasks/TSK-001-documentation-only-classifier.md`
 - Micro-task pack: `docs/60-microtasks/MTP-001-documentation-only-classifier.md`
 
+## Planned spine (Frontend UI MVP)
+
+- Spec: `docs/40-specs/SPC-002-frontend-ui.md`
+- Task: `docs/50-tasks/TSK-003-frontend-ui.md`
+- Micro-task pack: `docs/60-microtasks/MTP-004-frontend-ui.md`
+  - Governance gate: MT-005 (tooling/dependencies approval)
+
 ## Product intent anchors
 
 - Product direction: `docs/00-product/product-direction.md`
@@ -36,6 +43,10 @@
   - `docs/50-tasks/TSK-002-security-request-classification-delta.md` -> `docs/60-microtasks/MTP-002-security-request-classification-delta.md`
 - `SPC-001` -> implementation: `src/requestClassifier.js`, `tests/requestClassifier.test.js`
 - `SPC-001` -> validation evidence: `docs/30-validation/validator-smoke-test-001.md`
+
+- `SPC-002` -> `TSK-003` -> `MTP-004`
+  - Planned implementation (to be added after execution): UI files under `ui/**` (or chosen alternate) + bundler config
+  - Planned validation evidence (to be added after execution): Validator report for UI MVP
 
 ## Notes / constraints captured
 
