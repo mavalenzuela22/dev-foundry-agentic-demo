@@ -154,9 +154,9 @@ When an agent completes an MT, they must:
     - Summary: implemented security signal detection, doc-only security exception precedence, and default security escalation to code/medium/needs_review.
     - No dependencies, runtime config, I/O, randomness, tests, or deployment files changed.
 
-- [ ] MT-004 - Add/adjust Jest-style tests for security delta
+- [x] MT-004 - Add/adjust Jest-style tests for security delta
   - Owner agent: Code Author
-  - Status: pending
+  - Status: completed
   - Purpose:
     - Add static (not executed) tests that document the expected behavior for the security delta per `SPC-001` AC-006..AC-008 and `TSK-002` AC-TSK-002-003.
   - Inputs / references:
@@ -192,6 +192,24 @@ When an agent completes an MT, they must:
     - Code Author updates this MTP under MT-004 with:
       - touched file: `tests/requestClassifier.test.js`
       - list of added/modified test names and the input strings used
+  - Evidence:
+    - Files read (read-only):
+      - `tests/requestClassifier.test.js`
+      - `src/requestClassifier.js`
+    - Files modified:
+      - `tests/requestClassifier.test.js`
+    - Tests added (behavior → input):
+      1) classifies security vulnerability fix request as code, medium risk, needs_review → "Fix vulnerability in auth"
+      2) classifies Spanish security hardening request as code, medium risk, needs_review → "ciberseguridad hardening"
+      3) applies documentation-only security exception precedence over default security escalation → "Update documentation about security best practices."
+      4) classifies Spanish documentation-only security request as low risk and bounded execution ready → "actualizar documentación de seguridad"
+    - Notes:
+      - Used `expect.objectContaining({ type, risk, mode })` assertions.
+      - For precedence test, asserted `reason` contains "documentation-only security".
+    - Scope constraints affirmed:
+      - No runner/config/dependency changes.
+    - UNKNOWNs:
+      - none
 
 - [ ] MT-005 - Validator static inspection (implementation + tests)
   - Owner agent: Validator

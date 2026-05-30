@@ -35,4 +35,53 @@ describe('classifyRequest', () => {
     expect(result.risk).toBe('unknown');
     expect(result.mode).toBe('needs_review');
   });
+
+  test('classifies security vulnerability fix request as code, medium risk, needs_review', () => {
+    const result = classifyRequest('Fix vulnerability in auth');
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: 'code',
+        risk: 'medium',
+        mode: 'needs_review'
+      })
+    );
+  });
+
+  test('classifies Spanish security hardening request as code, medium risk, needs_review', () => {
+    const result = classifyRequest('ciberseguridad hardening');
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: 'code',
+        risk: 'medium',
+        mode: 'needs_review'
+      })
+    );
+  });
+
+  test('applies documentation-only security exception precedence over default security escalation', () => {
+    const result = classifyRequest('Update documentation about security best practices.');
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: 'documentation',
+        risk: 'low',
+        mode: 'bounded_execution_ready'
+      })
+    );
+    expect(result.reason.toLowerCase()).toContain('documentation-only security');
+  });
+
+  test('classifies Spanish documentation-only security request as low risk and bounded execution ready', () => {
+    const result = classifyRequest('actualizar documentación de seguridad');
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: 'documentation',
+        risk: 'low',
+        mode: 'bounded_execution_ready'
+      })
+    );
+  });
 });
