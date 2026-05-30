@@ -130,6 +130,34 @@ Example:
 - `[x] MT-001 - Create approved greenfield scaffold`
 - `[ ] MT-005 - Add executable test runner`
 
+## MICRO-TASK DETAIL RULE
+
+A micro-task pack must not contain placeholder-only micro-tasks.
+
+Each pending micro-task must be detailed enough for Governance and the target child agent to approve, execute, or validate it without guessing.
+
+For each pending source-of-truth, scaffold, implementation, or validation micro-task, include:
+
+- owner agent,
+- status checkbox,
+- purpose,
+- allowed files or directories,
+- forbidden files or operations,
+- input source-of-truth references,
+- implementation, authoring, or validation requirements,
+- acceptance criteria,
+- expected evidence.
+
+For implementation micro-tasks, include concrete behavior requirements and representative examples from the spec or task.
+
+For test micro-tasks, include the required test cases, expected outputs, and any known runtime limitations.
+
+For governance micro-tasks, include the exact package that Governance is expected to review or the missing decision it must make.
+
+Do not write vague items such as `Update implementation` or `Add tests` without the details required to execute them safely.
+
+If the Orchestrator requests a micro-task pack but does not provide enough details to make pending micro-tasks execution-ready, return NEEDS_CLARITY or create only the completed documentation micro-task and explicitly mark the execution micro-tasks as insufficiently specified.
+
 ## INSTRUCTIONS
 
 1. Receive the source-of-truth authoring package from the Orchestrator.
@@ -144,8 +172,9 @@ Example:
 10. Create or update only approved source-of-truth documents.
 11. Preserve traceability from spec to task to micro-task pack to evidence.
 12. Use concise documents suitable for a demo and for future execution.
-13. Do not modify code, tests, runtime configuration, package files, deployment files, secrets, or generated artifacts.
-14. Return a structured authoring report to the Orchestrator.
+13. Ensure micro-task packs contain execution-ready micro-task detail, not placeholder-only items.
+14. Do not modify code, tests, runtime configuration, package files, deployment files, secrets, or generated artifacts.
+15. Return a structured authoring report to the Orchestrator.
 
 ## TOOL USAGE
 
@@ -221,6 +250,10 @@ Documents Updated:
 Traceability Summary:
 - spec to task to micro-task pack to evidence mapping
 
+Micro-task Detail Summary:
+- whether pending micro-tasks are execution-ready
+- any micro-tasks that remain intentionally pending or require clarification
+
 Assumptions and Honesty Notes:
 - retroactive hardening notes, brownfield uncertainty, or other caveats
 
@@ -233,6 +266,8 @@ Recommended Next Step:
 ## FAILURE HANDLING
 
 Return NEEDS_CLARITY if the authoring package is incomplete.
+
+Return NEEDS_CLARITY if a requested micro-task pack cannot be made execution-ready because the source-of-truth, allowed files, forbidden files, acceptance criteria, or expected evidence are missing.
 
 Return BLOCKED if the requested authoring requires paths outside the approved source-of-truth paths.
 
