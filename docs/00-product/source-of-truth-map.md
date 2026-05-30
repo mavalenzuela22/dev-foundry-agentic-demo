@@ -27,6 +27,8 @@
 ## Traceability (minimal)
 
 - `SPC-001` -> `TSK-001` -> `MTP-001`
+- `SPC-001` -> delta tasks:
+  - `docs/50-tasks/TSK-002-security-request-classification-delta.md`
 - `SPC-001` -> implementation: `src/requestClassifier.js`, `tests/requestClassifier.test.js`
 - `SPC-001` -> validation evidence: `docs/30-validation/validator-smoke-test-001.md`
 

@@ -63,6 +63,43 @@ Return an object:
    - `risk: unknown`
    - `mode: needs_review`
 
+#### DELTA (unimplemented): Security-related request handling
+
+This delta adds deterministic handling for security-related requests.
+
+**Security signals (initial):**
+- `security`
+- `seguridad`
+- `ciberseguridad`
+- `vulnerability`
+- `vulnerabilidad`
+- `hardening`
+
+**Security escalation default (when not doc-only exception):**
+- If *any* security signal is present **and** the doc-only exception (below) does **not** apply:
+  - `type: code`
+  - `risk: medium`
+  - `mode: needs_review`
+  - `reason` mentions security-related request and review requirement
+
+**Doc-only security exception (precedence rule):**
+- This exception must be evaluated **before** the security escalation default.
+- If the request is strictly security documentation:
+  - documentation intent signals are present
+  - **and** at least one security signal is present
+  - **and** the request text does **not** mention any of:
+    - `remediación`, `vulnerabilidad`, `hardening`, `implementación`, `endpoint`, `API`, `auth`, `permisos`
+    - or any explicit code change intent
+  - then classify as documentation-only:
+    - `type: documentation`
+    - `risk: low`
+    - `mode: bounded_execution_ready`
+
+**Normative examples (delta):**
+1. "Fix vulnerability in auth" => `type: code`, `risk: medium`, `mode: needs_review`
+2. "ciberseguridad hardening" => `type: code`, `risk: medium`, `mode: needs_review`
+3. "actualizar documentación de seguridad" => `type: documentation`, `risk: low`, `mode: bounded_execution_ready`
+
 ## Acceptance criteria (Slice 001)
 
 AC-001 Deterministic classifier
@@ -88,6 +125,28 @@ AC-004 Unknown requests are not auto-approved
 
 AC-005 Validation mode
 - Validation is by static inspection of implementation and tests; runtime execution is not required in Slice 001.
+
+### Acceptance criteria (DELTA: Security-related requests; unimplemented)
+
+AC-006 Security requests escalate to code + needs_review
+- If request text contains any security signal (`security`, `seguridad`, `ciberseguridad`, `vulnerability`, `vulnerabilidad`, `hardening`) and the doc-only exception (AC-007) does not apply, output includes:
+  - `type: code`
+  - `risk: medium`
+  - `mode: needs_review`
+
+AC-007 Doc-only security exception prevents escalation (precedence)
+- If request text indicates documentation intent and includes a security signal, and does **not** include any of:
+  - `remediación`, `vulnerabilidad`, `hardening`, `implementación`, `endpoint`, `API`, `auth`, `permisos`
+  - or explicit code change intent
+  then output includes:
+  - `type: documentation`
+  - `risk: low`
+  - `mode: bounded_execution_ready`
+
+AC-008 Normative examples for security delta
+- "Fix vulnerability in auth" => `type: code`, `risk: medium`, `mode: needs_review`
+- "ciberseguridad hardening" => `type: code`, `risk: medium`, `mode: needs_review`
+- "actualizar documentación de seguridad" => `type: documentation`, `risk: low`, `mode: bounded_execution_ready`
 
 ## Implementation and evidence (Slice 001)
 
