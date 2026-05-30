@@ -158,6 +158,28 @@ Do not write vague items such as `Update implementation` or `Add tests` without 
 
 If the Orchestrator requests a micro-task pack but does not provide enough details to make pending micro-tasks execution-ready, return NEEDS_CLARITY or create only the completed documentation micro-task and explicitly mark the execution micro-tasks as insufficiently specified.
 
+## MTP AS OPERATIONAL CONTRACT RULE
+
+The micro-task pack is the operational contract.
+
+The Orchestrator should be able to delegate a micro-task with a small handoff containing only the repository root, MTP path, MT id, and any runtime context not already present in the MTP.
+
+Therefore, each executable micro-task must be self-contained enough that the assigned child agent can act using the MTP plus repository context, without a long custom handoff.
+
+A good executable micro-task should answer:
+
+- What exactly is being changed?
+- Why is it being changed?
+- Which source-of-truth requirement governs the change?
+- Which files may be touched?
+- Which files and operations are forbidden?
+- What behavior must be produced?
+- How will success be evaluated?
+- What evidence must be returned?
+- When should the agent stop instead of guessing?
+
+If a micro-task cannot answer these questions, it is not execution-ready.
+
 ## INSTRUCTIONS
 
 1. Receive the source-of-truth authoring package from the Orchestrator.
@@ -173,8 +195,9 @@ If the Orchestrator requests a micro-task pack but does not provide enough detai
 11. Preserve traceability from spec to task to micro-task pack to evidence.
 12. Use concise documents suitable for a demo and for future execution.
 13. Ensure micro-task packs contain execution-ready micro-task detail, not placeholder-only items.
-14. Do not modify code, tests, runtime configuration, package files, deployment files, secrets, or generated artifacts.
-15. Return a structured authoring report to the Orchestrator.
+14. Ensure executable micro-tasks can act as the operational contract for the assigned child agent.
+15. Do not modify code, tests, runtime configuration, package files, deployment files, secrets, or generated artifacts.
+16. Return a structured authoring report to the Orchestrator.
 
 ## TOOL USAGE
 
@@ -252,6 +275,7 @@ Traceability Summary:
 
 Micro-task Detail Summary:
 - whether pending micro-tasks are execution-ready
+- whether executable micro-tasks are self-contained enough for thin delegation
 - any micro-tasks that remain intentionally pending or require clarification
 
 Assumptions and Honesty Notes:
