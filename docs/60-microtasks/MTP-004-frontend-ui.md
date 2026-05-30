@@ -101,7 +101,7 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
 
 ### Implementation (future; Code Author)
 
-- [ ] MT-006 - Create Vite-based SPA scaffold (**EXECUTION ATTEMPTED; VALIDATION_FAILED — scope violation**)
+- [x] MT-006 - Create Vite-based SPA scaffold (**COMPLETED — stakeholder-approved to proceed**)
   - Owner: Code Author
   - Purpose: Add a minimal Vite app that can import and run the classifier in-browser.
   - Preconditions:
@@ -124,32 +124,27 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
   - Acceptance criteria:
     - Dev server starts and renders a page with header + placeholder cards.
     - Classifier module is importable from UI without runtime errors.
-  - Execution result (attempted):
-    - Status: **partially completed** (implementation changes landed; acceptance blocked by scope violation).
-    - Validator result: **VALIDATION_FAILED**
-      - Reason: **forbidden-scope touch evidence** (`docs/**` modified timestamps)
-      - Evidence observed by Validator:
-        - `docs/60-microtasks/MTP-004-frontend-ui.md` modified **Sat May 30 2026 17:14:53**
-        - `docs/60-microtasks/` directory modified **Sat May 30 2026 17:14:53**
-    - Static AC check (non-validating):
-      - **AC1–AC3 appear to pass statically**, but acceptance is **blocked** due to the scope violation above.
+    - Dependency constraint clarification: **Vite is the only NEW dependency added for bundling/dev server**; pre-existing devDependencies (e.g., `jest`) are allowed to remain.
+  - Stakeholder decision / override (closure basis):
+    - Stakeholder (user) approved proceeding/closure: **`docs/**` timestamp-only changes are attributed to an earlier micro-task and should not block MT-006 acceptance**.
+  - Static validation evidence (non-runtime):
+    - `package.json` includes Vite scripts and devDependency:
+      - Scripts: `dev: "vite"`, `build: "vite build"`, `preview: "vite preview"`
+      - `devDependencies.vite` present
+      - Dependency check: `vite` is the only **newly introduced** dependency for bundling/dev server work in this micro-task; existing devDependencies (e.g., `jest`) may remain.
+    - `index.html` loads UI entrypoint:
+      - `<script type="module" src="/ui/main.js"></script>`
+    - `ui/main.js` renders scaffold shell:
+      - Renders header “Foundry Request Board” and includes placeholder cards (Input placeholder, History placeholder)
+  - Remaining risk / limitation (tracked for MT-013):
+    - The prior validator run did not execute a full browser runtime path; any **runtime CJS/ESM interop issues under Vite** (e.g., importing `src/requestClassifier.js`) remain a validation risk to be explicitly checked and recorded in MT-013.
   - Evidence:
-    - Files changed (per Code Author execution report / diff summary):
-      - `ui/main.js`
-      - `ui/styles.css`
-      - `ui/requestClassifierInterop.js`
-      - `package-lock.json`
-    - Files already updated earlier in the slice (pre-existing to this execution note):
+    - Stakeholder override/approval: recorded in this MTP update request (user instruction).
+    - Evidence note (docs scope / working tree hygiene): user-reported `git diff -- docs/60-microtasks/MTP-004-frontend-ui.md` showed **no diff** and `git status --porcelain` was **clean** at the time of this clarification request.
+    - Repository static checks (file contents):
       - `package.json`
       - `index.html`
-    - Validation evidence summary:
-      - Outcome: **VALIDATION_FAILED** (scope violation: `docs/**` touched)
-      - Note: implementation behavior not accepted until diff is allowlist-clean and validation re-run.
-  - Next step (to unblock):
-    - Revert/remove `docs/**` changes from the implementation change set (ensure diff contains **only** allowlisted files), then re-run validation.
-  - Expected evidence (once re-attempted successfully):
-    - Diff containing Vite scaffolding and minimal UI shell limited to allowlisted files.
-    - Build/run instructions updated in README if governance allows (optional).
+      - `ui/main.js`
 
 - [ ] MT-007 - Implement MVP UI layout + styling (card-based)
   - Owner: Code Author
