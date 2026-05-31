@@ -1,168 +1,407 @@
-# MTP-007 — Vite dev-server classifier import interop fix
+# MTP-007: Vite Dev-server Classifier Interop Fix
 
-Status: **COMPLETED**
+## Status
 
-- Request / Trigger: Vite dev-server-only failure resolving `classifyRequest` from `src/requestClassifier.js`.
-- Repo: `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
-- Intended change type: **brownfield bugfix (interop)**
-- Owner (Orchestrator): TBD
+COMPLETED PRODUCT MICRO-TASK PACK
 
-## Problem statement (observed)
-- `npm run dev` (http://localhost:5173) shows UI error JSON:
-  - `"Could not resolve classifyRequest export from src/requestClassifier.js (CJS/ESM interop failed)"`
-  - thrown in `ui/requestClassifierInterop.js`.
-- `npm run preview` (http://localhost:4173) works.
+## Purpose
 
-## Hypothesis (from request)
-Vite dev serves local source as native ESM without CJS wrapping; the guarded `module.exports` assignment in `src/requestClassifier.js` does not apply, so no export is exposed to `import()` consumers in dev.
+Fix a Vite dev-server-only classifier import issue where the UI worked in preview mode but failed in dev mode.
 
-## Proposed minimal fix (from request)
-1) In `src/requestClassifier.js`: attach a browser-accessible global export, e.g. `globalThis.__foundryRequestClassifier = { classifyRequest }` (guarded).
-2) In `ui/requestClassifierInterop.js`: after awaiting dynamic import, if `classifyRequest` is not exposed, fallback to `globalThis.__foundryRequestClassifier.classifyRequest`.
+This micro-task pack belongs to Foundry Request Board product runtime behavior. It does not define Dev Foundry agent-system hardening, Alita prompt behavior, Flow Evidence Manifest behavior, MCP read-reduction behavior, or Orchestrator behavior.
 
-## Scope and constraints
-- **Implementation files allowed** (tight scope):
+## Problem Statement
+
+The Foundry Request Board UI worked under the production preview flow but failed under Vite dev server.
+
+Observed behavior:
+
+- `npm run preview` worked.
+- `npm run dev` failed in the browser UI with classifier interop resolution error.
+- The UI could not resolve a working `classifyRequest` export from `src/requestClassifier.js` under Vite dev server behavior.
+
+Observed error text:
+
+- `Could not resolve classifyRequest export from src/requestClassifier.js (CJS/ESM interop failed)`
+
+## Root Cause Hypothesis
+
+The classifier module originated as a CommonJS-compatible module for Node/Jest usage.
+
+Vite preview/build behavior and Vite dev-server behavior can expose CommonJS/ESM interop differently. The existing browser wrapper could obtain the classifier in preview, but dev mode did not expose the expected export shape.
+
+## Product Goal
+
+Make classifier interop work consistently in both:
+
+- Vite dev server
+- Vite build and preview
+
+without changing classifier behavior.
+
+## Scope
+
+### Implementation scope
+
+- `src/requestClassifier.js`
+- `ui/requestClassifierInterop.js`
+
+### Source-of-truth and evidence scope
+
+- `docs/60-microtasks/MTP-007-vite-dev-classifier-interop.md`
+- `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
+
+### Forbidden scope
+
+- package files
+- lockfiles
+- dependency changes
+- Vite config changes
+- build config changes
+- deployment files
+- tests, unless separately approved
+- UI files outside `ui/requestClassifierInterop.js`
+- classifier behavior changes
+- agent-system docs
+- agent prompt files
+- secrets
+- environment files
+
+## Non-goals
+
+- Do not change classification output.
+- Do not add dependencies.
+- Do not change the test runner.
+- Do not introduce a backend.
+- Do not redesign the UI.
+- Do not refactor the classifier.
+- Do not change the product specification unless classifier behavior changes, which this fix should avoid.
+
+## Proposed Minimal Fix
+
+Use a minimal browser-safe fallback that allows the UI interop layer to resolve `classifyRequest` consistently.
+
+Implementation direction:
+
+1. In `src/requestClassifier.js`, expose a guarded browser-accessible fallback reference through `globalThis` when available.
+2. Preserve existing CommonJS export behavior for Node/Jest compatibility.
+3. In `ui/requestClassifierInterop.js`, resolve the classifier function in a safe order:
+   - ESM named export, if present.
+   - CommonJS default export shape, if present.
+   - `globalThis` fallback after module evaluation.
+4. If no function is found, keep a clear interop failure error.
+
+## Acceptance Criteria
+
+### AC-MTP-007-001 Dev server works
+
+When running `npm run dev` and opening the app in the browser:
+
+- the prior interop error is not observed;
+- the app reaches the usable UI state;
+- classification can run.
+
+### AC-MTP-007-002 Preview still works
+
+When running build and preview:
+
+- build succeeds;
+- preview server starts;
+- UI loads;
+- classification remains usable.
+
+### AC-MTP-007-003 Tests still pass
+
+User-run `npm test` passes.
+
+### AC-MTP-007-004 Classifier behavior is unchanged
+
+The fix must not change classification semantics.
+
+The classifier should still satisfy existing regression tests, including:
+
+- documentation-only request classification;
+- security escalation;
+- documentation-only security exception;
+- negated `code` phrase regression.
+
+### AC-MTP-007-005 Scope remains bounded
+
+Only the approved implementation files should change:
+
+- `src/requestClassifier.js`
+- `ui/requestClassifierInterop.js`
+
+No package, dependency, Vite config, test, backend, deployment, or agent-system changes are authorized.
+
+## Micro-tasks
+
+### [x] MT-001 — Source-of-truth scope and guardrails
+
+Owner: Source-of-Truth Author
+
+Purpose:
+
+- Create a bounded micro-task pack for the Vite dev-server interop bugfix.
+- Define problem, scope, forbidden changes, and validation expectations.
+
+Allowed files:
+
+- `docs/60-microtasks/MTP-007-vite-dev-classifier-interop.md`
+
+Optional closure/evidence file:
+
+- `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
+
+Forbidden:
+
+- implementation files
+- tests
+- package files
+- dependency changes
+- Vite config changes
+- deployment files
+- secrets
+- agent-system docs
+- agent prompt files
+
+Requirements:
+
+- State the observed dev-server-only failure.
+- State that preview worked while dev failed.
+- Limit implementation scope to the smallest set of files.
+- Define validation evidence required from user-run runtime checks.
+
+Acceptance criteria:
+
+- MTP defines explicit allowlist.
+- MTP defines explicit forbidden scope.
+- MTP defines validation requirements for dev, test, build, and preview.
+- MTP does not expand product behavior.
+
+Evidence:
+
+- `docs/60-microtasks/MTP-007-vite-dev-classifier-interop.md`
+
+Status:
+
+- Completed.
+
+### [x] MT-002 — Implement minimal classifier interop fallback
+
+Owner: Code Author
+
+Purpose:
+
+- Fix Vite dev-server classifier resolution while preserving Node/Jest compatibility and classifier behavior.
+
+Allowed files:
+
+- `src/requestClassifier.js`
+- `ui/requestClassifierInterop.js`
+
+Forbidden:
+
+- any other source files
+- tests
+- package files
+- lockfiles
+- dependency changes
+- Vite config changes
+- deployment files
+- secrets
+- docs, except closure/evidence handled by source-of-truth steps
+
+Requirements:
+
+- Add a guarded browser-accessible fallback for `classifyRequest`.
+- Preserve guarded CommonJS export for Node/Jest usage.
+- Update browser interop resolution to try:
+  - ESM named export
+  - CommonJS default shape
+  - browser global fallback
+- Keep the existing failure mode clear if no classifier function is available.
+- Do not change classifier logic or output.
+- Do not add dependencies.
+
+Acceptance criteria:
+
+- Dev server no longer fails to resolve `classifyRequest`.
+- Preview remains functional.
+- Tests remain compatible.
+- Classifier output is unchanged.
+- Only approved implementation files are modified.
+
+Evidence:
+
+- Modified files:
   - `src/requestClassifier.js`
   - `ui/requestClassifierInterop.js`
-- **Spec impact**:
-  - No spec change is required for this interop-only bugfix **unless** an existing spec explicitly defines how the classifier module must be imported in the browser. If such a spec exists, capture the note during MT-004 without expanding scope.
-- **Forbidden**:
-  - `package*.json`, dependency changes, Vite config changes, build/deploy changes
-  - touching other source files beyond the two allowlisted files
-  - docs changes except this MTP and explicitly referenced validation/closure documents
+- Summary:
+  - Added guarded `globalThis` fallback in classifier module.
+  - Updated interop resolution order in browser wrapper.
+  - Preserved CommonJS compatibility.
+  - No dependencies, config, package, test, or deployment changes.
 
-## Micro-task checklist
+Status:
 
-### MT-001 — SoT: scope, acceptance criteria, guardrails
-- Owner agent: Dev Foundry Source-of-Truth Author
-- Status: [x]
-- Purpose: Make the work execution-safe and traceable; confirm minimal scope and define “done”.
+- Completed.
 
-#### Evidence (MT-001)
-- This MTP defines execution-ready guardrails and “done” criteria:
-  - **Allowlist / tight scope**: `src/requestClassifier.js`, `ui/requestClassifierInterop.js`
-  - **Forbidden operations**: dependency/config/build/deploy changes; touching other files
-  - **Acceptance criteria** for implementation (MT-002) and validation steps + evidence requirements (MT-003)
-- Validation evidence doc target is explicitly declared: `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
-- Allowed files/dirs:
-  - `docs/60-microtasks/MTP-007-vite-dev-classifier-interop.md` (this file)
-  - (If needed for closure) `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
-- Forbidden:
-  - Any code changes (implementation belongs to MT-002)
-  - Any docs changes outside the two files above
-- Inputs (evidence from request):
-  - Error message: `Could not resolve classifyRequest export from src/requestClassifier.js (CJS/ESM interop failed)`
-  - Current interop logic in `ui/requestClassifierInterop.js` as described in request
-  - Current guarded CJS export in `src/requestClassifier.js` as described in request
-- Acceptance criteria:
-  1. This MTP contains execution-ready micro-tasks with explicit allowlist/forbidden and evidence requirements.
-  2. Implementation scope is limited to exactly:
-     - `src/requestClassifier.js`
-     - `ui/requestClassifierInterop.js`
-  3. Validation requirements are unambiguous (commands + expected results).
-- Expected evidence:
-  - Updated MTP content (this document) is ready for Governance delegation.
+### [x] MT-003 — Validate dev, test, build, and preview behavior
 
-### MT-002 — Code: implement minimal interop fix (global fallback)
-- Owner agent: Code Author
-- Status: [x]
-- Purpose: Fix Vite dev-server-only CJS/ESM interop so the UI can obtain a working `classifyRequest` function.
+Owner: Validator
 
-#### Evidence (MT-002)
-- Governance: **APPROVED** tight scope only:
-  - Allowed: `src/requestClassifier.js`, `ui/requestClassifierInterop.js`
-  - Forbidden: everything else
-- Code Author evidence (reported):
-  - Modified: `src/requestClassifier.js`, `ui/requestClassifierInterop.js`
-  - Change summary:
-    - Added `globalThis` export fallback (guarded) for browser/dev-server execution.
-    - Implemented interop resolution order in `ui/requestClassifierInterop.js` (prefer ESM named export → CJS default shape → `globalThis` fallback).
-- Allowed files/dirs (strict):
-  - `src/requestClassifier.js`
-  - `ui/requestClassifierInterop.js`
-- Forbidden:
-  - any other files (including `package*.json`, `vite.config.*`, tests, or any docs)
-- Requirements:
-  1. In `src/requestClassifier.js`, after `classifyRequest` is defined, attach a browser-accessible global reference:
-     - Set `globalThis.__foundryRequestClassifier = { classifyRequest }` **when `globalThis` exists**.
-     - Do not remove the existing guarded `module.exports = { classifyRequest }` pattern; keep Node/Jest `require()` behavior.
-     - Keep side effects minimal and idempotent (safe if executed more than once).
-  2. In `ui/requestClassifierInterop.js` interop logic:
-     - Continue to `await import('../src/requestClassifier.js')`.
-     - Compute candidate classifier function in this priority order:
-       1) `mod.classifyRequest` (ESM named export if present)
-       2) `mod.default?.classifyRequest` (CJS default interop shape)
-       3) `globalThis.__foundryRequestClassifier?.classifyRequest` (fallback after import evaluation)
-     - If none resolves to a function, throw the existing error (or an equivalent error) that clearly indicates interop failure.
-- Acceptance criteria:
-  1. Running `npm run dev` no longer shows the JSON error, and the UI can classify requests (at least to the extent that the prior failing screen loads without error).
-  2. `npm run preview` continues to work.
-  3. `npm test` passes without modifications to test files.
-- Expected evidence to return:
-  - Diff/patch or file paths changed (from Code Author)
-  - Notes of any edge cases encountered (e.g., `globalThis` availability)
+Purpose:
 
-### MT-003 — Validation: prove dev + tests
-- Owner agent: Validator
-- Status: [x]
-- Purpose: Produce governed validation evidence that the fix works in dev and does not break tests.
+- Validate the interop fix using static review plus user-run runtime evidence.
 
-#### Evidence (MT-003)
-- Validation doc updated with user-run runtime evidence: `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
-  - `npm test`: **PASS** (8/8 tests)
-  - `npm run dev` at `http://localhost:5173`: **PASS**; previously observed error string is explicitly recorded as **not observed**
-  - `npm run build && npm run preview` at `http://localhost:4173`: **PASS** (verbatim command output recorded)
-  - Screenshot references recorded:
-    - Dev: `/attachments/2cf157bc-446a-4b0b-84b0-cd09922127f2/image_20260530_223807_51040KB.png`
-    - Preview: `/attachments/2cf157bc-446a-4b0b-84b0-cd09922127f2/image_20260530_224257_45792KB.png`
-  - Validator verdict: **VALIDATION_PASSED**
+Allowed read scope:
 
-#### Current Validator status (reported)
-- Status: **COMPLETED**
-- Validator verdict: **VALIDATION_PASSED** (see `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`)
-- Note: Evidence is user-run; agents did not execute commands.
-- Allowed files/dirs:
-  - (Write) `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
-  - (Read) only what is needed to validate (implementation files + this MTP)
-- Forbidden:
-  - Implementation changes
-  - Dependency/config changes
-- Validation steps (required):
-  1. `npm ci` (only if needed for clean environment; otherwise note existing install state)
-  2. `npm test`
-     - Expected: exit code 0
-  3. `npm run dev`
-     - Visit: http://localhost:5173
-     - Expected: no UI JSON error about resolving `classifyRequest`; classifier interop does not throw.
-     - Capture evidence: terminal output snippet and/or screenshot/console log excerpt showing absence of error.
-  4. `npm run build && npm run preview`
-     - Visit: http://localhost:4173
-     - Expected: still works (regression check).
-- Evidence requirements:
-  - Record exact commands, timestamps (rough), and observed results in `VAL-007...`.
-  - Include the exact previously observed error string and explicitly state it is no longer observed in dev.
+- `src/requestClassifier.js`
+- `ui/requestClassifierInterop.js`
+- `tests/requestClassifier.test.js`
+- `package.json`
+- `docs/60-microtasks/MTP-007-vite-dev-classifier-interop.md`
 
-### MT-004 — SoT closure: close MTP with evidence links
-- Owner agent: Dev Foundry Source-of-Truth Author
-- Status: [x]
-- Purpose: Finalize the pack as a governed record by linking implementation + validation evidence.
-- Allowed files/dirs:
-  - `docs/60-microtasks/MTP-007-vite-dev-classifier-interop.md`
-  - `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
-- Forbidden:
-  - Any implementation changes
-- Closure requirements:
-  1. Update this MTP:
-     - Mark MT-001..MT-004 as `[x]` when complete.
-     - Add links to:
-       - validation evidence doc (`VAL-007...`)
-       - code change evidence reference (PR link, diff hash, or file paths + summary as provided by Code Author)
-  2. Spec impact:
-     - If no spec exists or no behavior spec change is needed, explicitly note: “No spec changes required (interop-only bugfix).”
-     - If a spec exists and mentions classifier import behavior, add a minimal note/reference (only if an existing spec doc is already in scope by Governance).
-- Evidence:
-  - Validation evidence: `docs/30-validation/VAL-007-vite-dev-classifier-interop.md` (Status: **VALIDATION_PASSED**)
-  - No spec changes required (interop-only bugfix).
+Allowed evidence scope:
 
-- Expected evidence:
-  - Completed checklist in this MTP and cross-links to validation evidence.
+- `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
+
+Forbidden:
+
+- implementation changes
+- package changes
+- dependency changes
+- Vite config changes
+- deployment changes
+- secrets
+- agent-system docs
+
+Validation requirements:
+
+- Confirm the implementation includes a browser-safe fallback.
+- Confirm CommonJS compatibility remains present.
+- Confirm interop wrapper resolves classifier through safe fallback order.
+- Record user-run `npm test` evidence.
+- Record user-run `npm run dev` evidence.
+- Record user-run build and preview evidence.
+- State clearly that runtime commands were run by the user, not by agents.
+
+Acceptance criteria:
+
+- `npm test` user-run evidence passes.
+- `npm run dev` user-run evidence shows the prior error is not observed.
+- `npm run build && npm run preview` user-run evidence passes.
+- Validation report records the previous error string and confirms it is no longer observed.
+- Validation report preserves user-run evidence attribution.
+
+Evidence:
+
+- `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
+- User-run `npm test`: PASS, 8 tests passed.
+- User-run `npm run dev`: PASS, UI loaded and classified without prior interop error.
+- User-run `npm run build && npm run preview`: PASS, build succeeded and preview loaded.
+- User-provided screenshots were referenced in validation evidence, but private/local attachment identifiers are not required for understanding this product record.
+
+Status:
+
+- Completed.
+
+### [x] MT-004 — Source-of-truth closure
+
+Owner: Source-of-Truth Author
+
+Purpose:
+
+- Close the micro-task pack and link validation evidence.
+
+Allowed files:
+
+- `docs/60-microtasks/MTP-007-vite-dev-classifier-interop.md`
+- `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
+
+Forbidden:
+
+- implementation changes
+- tests
+- package changes
+- dependency changes
+- Vite config changes
+- deployment files
+- secrets
+- agent-system docs
+- agent prompt files
+
+Requirements:
+
+- Mark all micro-tasks completed.
+- Link validation evidence.
+- State no specification change was required because this was an interop-only bugfix.
+- Preserve evidence attribution: runtime evidence was user-run.
+- Do not reopen implementation scope.
+
+Acceptance criteria:
+
+- MTP status is completed.
+- Validation evidence is linked.
+- Runtime evidence attribution is honest.
+- No product behavior change is claimed beyond runtime interop fix.
+
+Evidence:
+
+- `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
+- This MTP closure record.
+- No spec change required.
+
+Status:
+
+- Completed.
+
+## Validation Evidence Summary
+
+Validation record:
+
+- `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
+
+Runtime evidence source:
+
+- User-run local commands and screenshots.
+
+Recorded runtime outcomes:
+
+- `npm test`: PASS, 8 tests passed.
+- `npm run dev`: PASS; prior classifier interop error not observed.
+- `npm run build && npm run preview`: PASS; build succeeded and preview loaded.
+
+Important limitation:
+
+- Agents did not execute runtime commands.
+- Runtime evidence was provided by the user and recorded as user-run evidence.
+
+## Product Outcome
+
+The Foundry Request Board UI now works in both Vite dev-server and preview flows.
+
+The fix preserves:
+
+- classifier behavior;
+- Jest compatibility;
+- browser classification;
+- Vite preview behavior;
+- bounded implementation scope.
+
+## No Specification Change Required
+
+No product specification change was required because this fix addressed browser module interop only.
+
+The classifier’s expected classification behavior remains governed by:
+
+- `docs/40-specs/SPC-001-foundry-request-classification.md`
+
+The browser UI behavior remains governed by:
+
+- `docs/40-specs/SPC-002-frontend-ui.md`
+
+## Final Status
+
+MTP-007 is complete and ready to be used as a demo scenario for bounded bugfix handling with user-run runtime evidence.
