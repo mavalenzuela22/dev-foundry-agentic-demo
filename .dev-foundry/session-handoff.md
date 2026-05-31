@@ -8,43 +8,66 @@ ACTIVE SESSION HANDOFF
 
 `mavalenzuela22/dev-foundry-agentic-demo`
 
-Local working repo used by Alita agents during this session:
+Local working repo used during this phase:
 
 `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
 
 ## Date
 
-2026-05-30
+2026-05-31
 
 ## Purpose of This File
 
-This file captures where the session stopped, what was completed, what rules now govern the next step, and what traps the next session must avoid.
+This file captures the current project state, completed work, known rules, demo-readiness posture, and the next recommended session focus.
 
-The project is an Alita-powered Dev Foundry agentic demo using a small guinea-pig app called Foundry Request Board.
+The project is an Alita-powered Dev Foundry agentic demo using a small guinea-pig product application called Foundry Request Board.
 
 ## Start-of-Next-Session Rule
 
 At the start of the next session:
 
-1. Remind the user to run `git pull` unless they already confirm it.
+1. Remind the user to run `git pull` unless they already confirm they are up to date.
 2. Read `.dev-foundry/session-handoff.md`.
 3. Read `.dev-foundry/session-scratchpad.md`.
 4. Do not plan, prompt, or modify artifacts before reading both files.
 
-## Important Session Outcome
+## Current Top-level Outcome
 
-This session hardened both the Foundry Request Board demo application and the Dev Foundry Alita-powered agent system.
+The repository is now demo-ready for presentation-deck preparation.
 
-Two distinct workstreams must remain separated:
+The strongest demo message is:
+
+Dev Foundry converts imperfect human intent into governed, bounded, evidence-backed agent execution.
+
+The current focus should move from product/system hardening to presentation deck preparation.
+
+## Workstreams Must Stay Separated
+
+There are two distinct workstreams:
 
 1. Foundry Request Board product/app work.
 2. Dev Foundry Alita-powered agent-system hardening.
 
 Do not mix agent-system hardening into the app `SPC/TSK/MTP` chain.
 
-## Current Working Model
+Product/app work belongs under product source-of-truth chains such as:
 
-The active Alita agents are:
+- `docs/00-product/`
+- `docs/30-validation/`
+- `docs/40-specs/`
+- `docs/50-tasks/`
+- `docs/60-microtasks/`
+
+Agent-system hardening belongs under:
+
+- `docs/10-agents/`
+- `docs/70-agent-system/`
+
+Do not create app MTPs for agent-system hardening.
+
+## Active Alita Agents
+
+The active Alita agents remain:
 
 - Dev Foundry Orchestrator
 - Dev Foundry Context Analyst
@@ -54,9 +77,11 @@ The active Alita agents are:
 - Dev Foundry Code Author
 - Dev Foundry Validator
 
-The Orchestrator is coordination-only. It may use read-only tools if assigned, but it must not write repository files.
+The Orchestrator is coordination-only. It may use read-only tools if assigned, but it must not directly write repository files.
 
-The system now follows the Flow Evidence Manifest operating model:
+## Current Agent Operating Model
+
+The system follows the Flow Evidence Manifest operating model:
 
 - Orchestrator owns the Flow Evidence Manifest.
 - Orchestrator resolves routing and scope facts once when possible.
@@ -64,16 +89,28 @@ The system now follows the Flow Evidence Manifest operating model:
 - Child agents must not repeatedly rediscover repository state already present in the manifest.
 - Every write-capable agent returns an evidence packet.
 - Validator uses evidence-based scope validation when git diff or changed-files tooling is unavailable.
-- Filesystem MCP should be used as initial fact source and target inspection, not repeated workflow memory.
+- Filesystem MCP should be used as initial fact source and direct target inspection, not repeated workflow memory.
 
-## Foundry Request Board App State
+Scope layers must remain explicit:
 
-The app is still intentionally small.
+- implementation scope;
+- source-of-truth closure scope;
+- validation read scope;
+- forbidden scope.
 
-Implemented core behavior:
+Never force an MTP closure file into Code Author implementation scope.
 
-- `src/requestClassifier.js`
-- `tests/requestClassifier.test.js`
+## Current Product State
+
+Foundry Request Board is intentionally small and demo-focused.
+
+Implemented product surface:
+
+- deterministic request classifier in `src/requestClassifier.js`;
+- Jest classifier tests in `tests/requestClassifier.test.js`;
+- browser-only UI under `ui/**`;
+- Vite local dev/build/preview flow;
+- in-browser classification with output badges, pretty JSON, copy JSON, and in-memory history.
 
 Current classifier behavior:
 
@@ -82,302 +119,163 @@ Current classifier behavior:
 - code/implementation requests classify as `code / medium / needs_review`;
 - unknown requests classify as `unknown / unknown / needs_review`;
 - security-related requests default to `code / medium / needs_review`;
-- strictly documentation-only security requests remain `documentation / low / bounded_execution_ready`;
-- Spanish documentation intent is recognized through `documentación` and `documentacion`.
+- documentation-only security requests remain `documentation / low / bounded_execution_ready`;
+- explicit no-code phrases such as `No code changes` do not force code classification when used to negate code work;
+- Spanish documentation/security terms are covered by current tests.
 
-Important implementation note:
+## Golden Demo Scenarios
 
-- `detectDocumentationSignals()` includes `/\bdocumentaci[oó]n\b/`.
-- security signals include `security`, `seguridad`, `ciberseguridad`, `vulnerability`, `vulnerabilidad`, and `hardening`.
+### Golden Scenario 1: MTP-006 negated code signal regression
 
-Runtime limitation:
+User found a real classifier bug from the UI:
 
-- The Alita environment used in the session did not have terminal access.
-- Jest-style tests exist, but runtime execution was not performed by agents.
-- Validation mode is static inspection unless a future governed slice adds runtime/CI/test-runner support.
+`Update the README documentation for security guidance. No code changes.`
 
-## Agentic Slice 001 Summary
+The classifier was too conservative because the literal word `code` triggered code intent even though the user explicitly negated code work.
 
-Slice 001 established initial classifier behavior and retroactively hardened it into source-of-truth documents.
+The Orchestrator handled a low-friction/brain-off prompt correctly:
 
-Relevant artifacts:
+- recognized product classifier behavior, not agent-system hardening;
+- flowed through source-of-truth and MTP work;
+- Governance approved bounded implementation;
+- Code Author modified only classifier/test scope;
+- Validator first provided static validation;
+- user supplied `npm test` output;
+- Source-of-Truth Author recorded user-run runtime evidence without claiming agents executed tests.
 
-- `docs/00-product/source-of-truth-map.md`
-- `docs/40-specs/SPC-001-foundry-request-classification.md`
-- `docs/50-tasks/TSK-001-documentation-only-classifier.md`
-- `docs/60-microtasks/MTP-001-documentation-only-classifier.md`
-- `docs/30-validation/agentic-slice-001-summary.md`
+Evidence:
 
-## Agentic Slice 002 Summary
+- `docs/60-microtasks/MTP-006-negated-code-signal.md`
+- `docs/30-validation/VAL-006-negated-code-signal.md`
 
-Slice 002 added the security request classification delta.
+User-run test outcome:
 
-Relevant artifacts:
+- 1 test suite passed;
+- 8 tests passed;
+- no snapshots;
+- all Jest suites completed successfully.
 
-- `docs/40-specs/SPC-001-foundry-request-classification.md`
-- `docs/50-tasks/TSK-002-security-request-classification-delta.md`
-- `docs/60-microtasks/MTP-002-security-request-classification-delta.md`
-- `docs/30-validation/agentic-slice-002-security-delta-summary.md`
+### Golden Scenario 2: MTP-007 Vite dev-server classifier interop fix
 
-Slice 002 flow:
+User found another real bug:
 
-1. Security classification source-of-truth delta was created.
-2. Governance approved bounded implementation.
-3. Code Author implemented the classifier delta.
-4. SoT Author closed MT-003 with evidence.
-5. Code Author added Jest-style tests.
-6. SoT Author closed MT-004 with evidence.
-7. Validator found a real static-validation failure.
-8. SoT Author recorded MT-005 failure and added remediation MTs.
-9. Code Author applied minimal remediation.
-10. Validator revalidated successfully.
-11. SoT Author closed MT-006 and MT-007.
+- `npm run preview` worked;
+- `npm run dev` failed with classifier interop resolution error.
 
-Important commits:
+The Orchestrator again handled a low-friction/brain-off prompt correctly:
 
-- MT-003 implementation: `49fa23efef1e0fd9faa3daeca65bb41a58dde776`
-- MT-003 closure: `8e149d94d28bb3b5d2a6d12f585ca588eda306dc`
-- MT-004 tests and closure: `d4250d33caf93378f67b4c9aabe4249e83cb4527`
-- MT-005 failure / MT-006 remediation / MT-007 re-validation: `28a8ac61f13e277b5f872e0ecf018b631afb407d`
-- Slice 002 summary initially persisted: `127729f7275a8d1deae84ebea84f405aefab7fe4`
-- Slice 002 English/template alignment flow: `4fac9829aa2f7b946e4877c3a4e078aeadd3a5bd`
+- created `MTP-007` for a bounded product runtime fix;
+- Governance approved tight scope;
+- Code Author modified only the allowed interop files;
+- Validator requested missing runtime/browser evidence rather than inventing proof;
+- user supplied the missing evidence;
+- Source-of-Truth closure recorded user-run `npm test`, `npm run dev`, and `npm run build && npm run preview` evidence.
 
-Caution:
+Evidence:
 
-The translation/template alignment flow for the Slice 002 summary exposed an owner-routing bug. It routed a governed validation evidence document to Code Author. That was later corrected through agent hardening.
+- `docs/60-microtasks/MTP-007-vite-dev-classifier-interop.md`
+- `docs/30-validation/VAL-007-vite-dev-classifier-interop.md`
 
-## Agent-System Hardening Completed
+This is the best demo example for evidence discipline: the system did not close until enough user-provided runtime evidence existed.
 
-### Orchestrator Consolidation
+## Demo-readiness Sanitization Completed
 
-The Orchestrator is now a single canonical prompt file:
+Product source-of-truth and validation evidence were sanitized for demo readiness.
 
-- `docs/10-agents/orchestrator.md`
+Sanitization intent:
 
-The old separate hardening file was removed:
+- separate product documents from agent-system hardening;
+- remove or reword outdated `future/unimplemented` language;
+- remove local path noise and private attachment identifiers from demo-facing evidence;
+- preserve validated product behavior and evidence;
+- avoid creating new Dev Foundry MTPs for the cleanup itself.
 
-- `docs/10-agents/orchestrator-micro-task-routing-hardening.md`
+Sanitization commits:
 
-Relevant commits:
+- `d063ebeaeec0603c29c37df51e22f8ae268263af` - Sanitize product source-of-truth docs for demo readiness
+- `b36c7e8322eb35e9bdc9b06da9156d3ecf6540e3` - Polish bootstrap product traceability docs
+- `c7ad2ac9e12fbe6b4eeb7192903082c8a0ccf00e` - Clean demo-facing validation evidence
+- `0b94329db202cb0c4a850343a0ffb5bc1c388be5` - Remove local path noise from validation records
 
-- Orchestrator consolidation: `6329eb95b3579d4c2cae4a381a0a43c4f4487818`
-- Removed separate hardening file: `ade55498d8f3f68d90b57a9d3a818037bc03d7cb`
+Final local checks reported by user:
 
-### Context Analyst Routing Resolver
+- `git status --short`: green / clean
+- `npm test`: green
+- `npm run build`: green
+- grep cleanup check: green except acceptable false-positive wording, if any
 
-Context Analyst can resolve repo/MTP/MT routing when the Orchestrator needs read-only resolver help.
+## Important Prior Completed Agent-system Hardening
 
-Commit:
+The following agent-system model remains active:
 
-- `fb10f8c1a7f9c8b7571ab9750058afdfa87ba066`
+- Flow Evidence Manifest;
+- manifest-first context;
+- explicit scope layers;
+- child-agent evidence packets;
+- no-diff validation mode;
+- read budget / MCP read reduction.
 
-### Orchestrator Resolver Delegation
-
-The Orchestrator can delegate repo/MTP/MT resolution to Context Analyst instead of asking the user for repo root when filesystem read context is available.
-
-Commit:
-
-- `3b5f0ac6e02bd5be9705bcb645c0cb766ec1a060`
-
-### Artifact Owner Routing
-
-Governed docs under `docs/30-validation/`, `docs/40-specs/`, `docs/50-tasks/`, `docs/60-microtasks/`, `docs/70-agent-system/`, or `docs/00-product/source-of-truth-map.md` must be owned by Source-of-Truth Author, even if the verb is `translate`, `edit`, `rewrite`, or `align template`.
-
-Relevant commits:
-
-- Orchestrator artifact-owner routing: `8828098a1ea604c483009f65fad5cc27ee70de0e`
-- Source-of-Truth Author governed document ownership: `a5cf03b4ef517db4d00402d20d7ea7ee0f4a0fa0`
-- Governance artifact-owner compatibility checks: `b210c3df2a3bab39b48ccf5dda6c114682e32871`
-
-### Flow Evidence Manifest / No-Diff Validation
-
-Main agent-system hardening document:
+Main hardening artifact:
 
 - `docs/70-agent-system/hardening/HARD-001-flow-evidence-manifest.md`
 
-Relevant commits:
+The three secondary agent-system docs were aligned and should not be treated as outdated:
 
-- HARD-001 created: `273d3fdaefc6bdc5f3d360dbf50336fcb49aa64b`
-- HARD-001 strengthened for MCP read reduction: `9dc9eecbf09be27e63aab4451d7a8a2c50cf8231`
-
-Core HARD-001 rules:
-
-- The Orchestrator owns the Flow Evidence Manifest.
-- The manifest is an in-memory operational packet, not a repo artifact by default.
-- The manifest separates implementation scope, SoT closure scope, validation read scope, and forbidden scope.
-- Child agents must not re-read facts already present in the manifest.
-- Validator must not attempt repo-wide changed-file discovery without git diff or changed-files tooling.
-- File timestamps are advisory only.
-- MCP filesystem reads should be front-loaded and memoized by the Orchestrator.
-
-### Flow Evidence Manifest Agent Updates
+- `docs/10-agents/agent-system.md`
+- `docs/10-agents/alita-agent-blueprint.md`
+- `docs/10-agents/alita-system-prompt-standard.md`
 
 All seven active agent prompts were updated for the Flow Evidence Manifest model:
 
-- Orchestrator Flow Evidence Manifest: `3d44c82a0dc56225872ebbd0101eb7b3ee7dc785`
-- Governance scope layers: `f650d0e4cc3215363eefd2d663b9651e991cc1c0`
-- Code Author Change Evidence Packet: `e39099e57e179a4c858749882939b5b80f21f4a8`
-- Validator no-diff validation mode: `5338b38c6a17ac20c3040acb85e94b94375eb032`
-- Source-of-Truth Author manifest-first/evidence packet: `47d63a3cc202cd82ea94badb0745ae7d5975a3c0`
-- Context Analyst manifest-first: `2c6e5d86190d888829e9931ae95bab580b456109`
-- Scaffolder manifest-first/evidence packet: `c6d1a6c42d768fd0bd45729ee1d4af6d37793566`
+- `docs/10-agents/orchestrator.md`
+- `docs/10-agents/child-agents/context-analyst.md`
+- `docs/10-agents/child-agents/source-of-truth-author.md`
+- `docs/10-agents/child-agents/governance.md`
+- `docs/10-agents/child-agents/scaffolder.md`
+- `docs/10-agents/child-agents/code-author.md`
+- `docs/10-agents/child-agents/validator.md`
 
-All seven active prompts should be updated in Alita:
-
-- Dev Foundry Orchestrator
-- Dev Foundry Context Analyst
-- Dev Foundry Governance Agent
-- Dev Foundry Source-of-Truth Author
-- Dev Foundry Scaffolder
-- Dev Foundry Code Author
-- Dev Foundry Validator
-
-### Secondary Agent-System Documentation Alignment
-
-The user correctly caught that three secondary docs would otherwise preserve outdated guidance.
-
-These were updated at the end of the session:
-
-- `docs/10-agents/agent-system.md` aligned with Flow Evidence Manifest, scope layers, evidence packets, no-diff validation, and MCP read reduction.
-- `docs/10-agents/alita-agent-blueprint.md` aligned with the seven-agent model and Flow Evidence Manifest runtime pattern.
-- `docs/10-agents/alita-system-prompt-standard.md` updated as the standard for future agent prompts, including manifest-first context, scope layers, evidence packets, read budget, and no-diff validation.
-
-Relevant commits:
-
-- `agent-system.md`: `a753b10bc48f57a5fcddb5994a6b881dc2732e62`
-- `alita-agent-blueprint.md`: `f5a246a0077b61bd715695bed0bfd0edae6531c5`
-- `alita-system-prompt-standard.md`: `63afa8503a54c049c3ba98db3a5bcb0c7962a3d2`
-
-## Current Agent Operating Rules
-
-### Separation of Workstreams
-
-Foundry Request Board product work remains under app source-of-truth chains such as:
-
-- `docs/40-specs/`
-- `docs/50-tasks/`
-- `docs/60-microtasks/`
-
-Dev Foundry Alita-powered agent-system hardening belongs under:
-
-- `docs/10-agents/`
-- `docs/70-agent-system/`
-
-Do not create app MTPs for agent-system hardening.
-
-### Flow Evidence Manifest
-
-The Orchestrator must maintain a Flow Evidence Manifest for selected MT execution.
-
-The manifest should include:
-
-- flow id or selected MT reference;
-- repository root;
-- selected MTP path;
-- selected MT id;
-- selected MT owner;
-- selected MT purpose;
-- selected MT requirements;
-- acceptance criteria;
-- source-of-truth refs;
-- implementation scope;
-- source-of-truth closure scope;
-- validation read scope;
-- forbidden scope;
-- governance packet;
-- child-agent evidence packets;
-- validation mode;
-- limitations.
-
-### Scope Layers
-
-Use separate scope layers:
-
-- implementation scope;
-- source-of-truth closure scope;
-- validation read scope;
-- forbidden scope.
-
-Never force the MTP closure file into Code Author implementation scope.
-
-### Evidence Packets
-
-Write-capable agents must return evidence packets.
-
-Code Author returns a Change Evidence Packet.
-
-Source-of-Truth Author returns a Source-of-Truth Evidence Packet.
-
-Scaffolder returns a Scaffold Evidence Packet.
-
-Validator returns a validation report based on the manifest, evidence packets, and validation read scope.
-
-### No-Diff Validation
-
-When git diff or changed-files tooling is unavailable:
-
-- Validator must not infer changed files from timestamps or broad metadata scans.
-- Validator must validate declared changed files from evidence packets.
-- Validator must inspect only validation target files.
-- Validator must report: `Repo-wide diff proof unavailable; scope validation is evidence-based.`
-
-### MCP Read Reduction
-
-After initial resolution, the Flow Evidence Manifest is the preferred context source.
-
-Child agents must not re-read MTP/SPC/TSK/source-of-truth-map files merely to recover facts already present in the manifest.
-
-Filesystem MCP should be used as:
-
-- initial fact source;
-- direct target inspection;
-- final verification where needed.
-
-It must not become repeated workflow memory.
-
-## Known Risks / Traps
+## Important Rules to Keep Front of Mind
 
 1. Do not mix Dev Foundry agent hardening with Foundry Request Board product MTPs.
 2. Do not route governed docs to Code Author.
-3. Do not let Validator reject SoT Author MTP closure as Code Author scope drift.
+3. Do not let Validator reject SoT Author MTP closure as Code Author implementation scope drift.
 4. Do not make Validator scan the repo by metadata or timestamps when no git diff exists.
-5. Do not allow each child agent to rediscover the same MTP/SPC/TSK facts repeatedly.
-6. Do not claim tests were executed in Alita; runtime execution was not available.
+5. Do not let each child agent rediscover the same MTP/SPC/TSK facts repeatedly.
+6. Do not claim tests were executed by Alita agents; runtime evidence in current flows was user-run.
 7. Do not create terminal-based test-runner work unless explicitly governed as a future slice.
-8. Do not treat `[x]` on a validation MT as validation success. `[x]` means the activity was executed and evidence was recorded; the outcome lives in Evidence.
-9. Do not forget the secondary docs: `agent-system.md`, `alita-agent-blueprint.md`, and `alita-system-prompt-standard.md` now carry the same operating model and should not drift.
+8. Do not treat `[x]` on a validation MT as validation success; the validation outcome lives in evidence.
+9. Product docs are now sanitized for demo-readiness; avoid re-opening cleanup unless a real contradiction appears.
 
 ## Recommended Next Session Start
 
 1. Ask the user to run `git pull` locally unless they already confirm they are up to date.
 2. Read `.dev-foundry/session-handoff.md`.
 3. Read `.dev-foundry/session-scratchpad.md`.
-4. Confirm whether the user already updated all seven Alita agents with the latest prompt files.
-5. If the user wants to test the new model, run a small conversational or read-only probe first to confirm:
-   - Orchestrator uses Flow Evidence Manifest;
-   - agents avoid excessive MCP reads;
-   - Validator uses no-diff validation mode;
-   - SoT closure scope is separated from implementation scope.
+4. Confirm whether the goal is presentation deck creation.
+5. Do not modify product code or source-of-truth docs unless the user explicitly asks.
 
 ## Suggested Next Work
 
-Potential next steps, depending on the user's priority:
+Primary next work:
 
-1. Test the updated agents with a small read-only status query.
-2. Test `ejecuta el siguiente MT del MTP-002` only if there are pending MTs; otherwise ask the Orchestrator to report no pending MT.
-3. Start a new app slice for Foundry Request Board, likely one of:
-   - a minimal CLI classification interface;
-   - formalizing static-validation-only constraints;
-   - a small UI or request-board view;
-   - a future CI/test-runner slice if terminal/CI support is approved.
-4. Run a focused agent-system smoke test to measure whether MCP reads dropped after the Flow Evidence Manifest hardening.
+- Start the presentation deck for approval/exam scheduling.
+
+Recommended deck narrative:
+
+- Problem: unconstrained agents execute quickly but may drift, over-read, touch wrong files, or invent evidence.
+- Proposal: Dev Foundry provides SDD governance, bounded execution, ownership routing, and evidence-backed validation for Alita agents.
+- Demo product: Foundry Request Board.
+- Golden scenarios: `MTP-006` and `MTP-007`.
+- Value: less prompt-engineering burden for tired users, more deterministic execution, stronger evidence, fewer `rojo chillón` moments.
+
+Do not start new product features before the deck unless a critical bug appears.
 
 ## Session Close State
 
 The session ended after:
 
-- all seven active known agent prompts were updated for the Flow Evidence Manifest model;
-- all secondary agent-system documentation was aligned to the same model;
-- session handoff and scratchpad were refreshed for continuity.
-
-No further file changes should be assumed beyond the commits listed here.
+- MTP-006 and MTP-007 proved the workflow under real imperfect prompts;
+- product source-of-truth and validation evidence were sanitized;
+- local commands were reported green;
+- the repo was ready for presentation deck preparation.
