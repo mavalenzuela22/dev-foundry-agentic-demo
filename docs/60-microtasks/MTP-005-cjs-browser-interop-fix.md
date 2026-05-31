@@ -1,208 +1,372 @@
-# Micro-Task Pack (MTP-005): CJS Browser Interop Fix (requestClassifier)
+# MTP-005: CJS Browser Interop Fix for requestClassifier
 
-## Request / Problem
-- Observed UI error when showing classifier result:
-  - `{"error":"ReferenceError: module is not defined\n    at http://localhost:5173/src/requestClassifier.js:191:1"}`
-- Root cause (reported): `src/requestClassifier.js` ends with CommonJS export `module.exports = { classifyRequest };` which throws in browser runtime where `module` is undefined.
+## Status
+
+COMPLETED PRODUCT MICRO-TASK PACK
 
 ## Purpose
-Prevent the browser runtime `ReferenceError: module is not defined` without changing classifier logic or output, while preserving Node/Jest compatibility.
 
-## Proposed Minimal Fix (preferred)
-Edit `src/requestClassifier.js` ONLY to guard `module.exports` assignment:
+Fix a browser runtime error caused by the CommonJS export statement in `src/requestClassifier.js` when the classifier was loaded in the browser UI flow.
 
-```js
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { classifyRequest };
-}
-```
+This micro-task pack belongs to Foundry Request Board product runtime behavior. It does not define Dev Foundry agent-system hardening, Alita prompt behavior, Flow Evidence Manifest behavior, MCP read-reduction behavior, or Orchestrator behavior.
 
-## Governing Source-of-Truth References
-- Spec (UI constraints): `docs/40-specs/SPC-002-frontend-ui.md`
-- Spec (classifier behavior): `docs/40-specs/SPC-001-foundry-request-classification.md`
+## Problem Statement
 
-## Related Evidence / Files (read-only references)
-- UI interop wrapper: `ui/requestClassifierInterop.js`
-- Jest coverage: `tests/requestClassifier.test.js`
+The browser UI showed a classifier runtime error:
 
-## Global Guardrails (apply to all micro-tasks unless overridden)
-- **Must not** change classifier logic or output.
-- **Must not** introduce new dependencies or configuration changes.
-- **Forbidden** (unless explicitly allowed by a micro-task):
-  - `package*.json`
-  - Vite config (any `vite*.{js,ts}` or `config` changes)
-  - dependency changes, lockfile changes
-  - deployment/runtime config changes
-  - `docs/**` (except creation/updates to this MTP and closure evidence document if MT-004 is executed)
+- `ReferenceError: module is not defined`
 
-## Acceptance Criteria (system-level)
-1. In browser runtime, classification no longer produces `ReferenceError: module is not defined`.
-2. Jest tests are still expected to pass (user-run).
-3. Classifier output is unchanged (no behavior or formatting changes to classification result).
+Observed location:
 
----
+- `src/requestClassifier.js`
 
-## MT-001 — Governance: Approve bounded change (guard-only)
-- Owner: Governance Agent
-- Status: [x]
+Root cause:
 
-### Evidence
-- Governance decision packet recorded in: `docs/30-validation/VAL-005-cjs-browser-interop-fix.md` (APPROVED; bounded to `src/requestClassifier.js` only; forbid deps/config/other files).
+- `src/requestClassifier.js` ended with a CommonJS export statement:
+  - `module.exports = { classifyRequest };`
+- In browser runtime, `module` is not defined.
+- The unguarded CommonJS export caused the browser flow to fail.
 
-### Purpose
-Approve a minimal, bounded implementation change that only guards the CommonJS export assignment to prevent browser runtime errors.
+## Product Goal
 
-### Scope layers
-- **Allowed review scope:**
-  - `docs/60-microtasks/MTP-005-cjs-browser-interop-fix.md` (this pack)
-  - Proposed implementation target: `src/requestClassifier.js` (guard-only change)
-- **Forbidden (must remain untouched):**
-  - `package*.json`, any Vite config, dependency/lockfile changes
-  - any files under `docs/**` besides this MTP and MT-004 closure artifact (if used)
+Prevent the browser runtime `ReferenceError` without changing classifier behavior or output.
 
-### Requirements / Decision points
-- Confirm the fix is strictly additive and **does not** change runtime logic aside from preventing the `module` reference in browser.
-- Confirm no other interop mechanism is required (e.g., build config changes), per constraint to avoid config/deps edits.
+The fix must preserve:
 
-### Acceptance criteria
-- Governance explicitly approves:
-  - Editing `src/requestClassifier.js` only.
-  - Wrapping existing `module.exports = { classifyRequest };` with the provided `typeof module !== 'undefined'` guard (or functionally identical guard).
-  - No other code edits.
+- browser UI classification flow;
+- Node/Jest CommonJS compatibility;
+- deterministic classifier behavior;
+- existing tests.
 
-### Expected evidence
-- Governance approval note referencing MTP-005 and MT-001, plus any constraints or caveats.
-
----
-
-## MT-002 — Code Author: Implement CJS export guard in browser
-- Owner: Code Author
-- Status: [x]
-
-### Evidence
-- Code Author change evidence recorded in: `docs/30-validation/VAL-005-cjs-browser-interop-fix.md` (COMPLETED; modified `src/requestClassifier.js` only; guarded `module.exports`).
-
-### Purpose
-Prevent browser `ReferenceError` by guarding the `module.exports` assignment in `src/requestClassifier.js` while preserving Node/Jest CommonJS usage.
+## Scope
 
 ### Implementation scope
-- **Allowed files (implementation):**
-  - `src/requestClassifier.js` **only**
 
-### Forbidden
-- `package*.json`
-- Any Vite configuration files
-- dependency changes, lockfile changes
-- any other source files including (explicitly):
-  - `ui/requestClassifierInterop.js`
-  - `tests/requestClassifier.test.js`
-- `docs/**` (except updating this MTP checkboxes if your workflow does that; otherwise leave docs unchanged)
+- `src/requestClassifier.js`
 
-### Implementation requirements
-- Locate the trailing export in `src/requestClassifier.js` (reported near line ~191):
-  - Current: `module.exports = { classifyRequest };`
-- Replace it with the guarded version:
-  - `if (typeof module !== 'undefined' && module.exports) { module.exports = { classifyRequest }; }`
-- Keep formatting consistent with the file.
-- Do not refactor, reformat the whole file, or change any classifier logic.
+### Read-only references
 
-### Acceptance criteria
-- `src/requestClassifier.js` no longer throws `ReferenceError: module is not defined` when loaded in the browser via Vite dev server.
-- Node/Jest usage remains supported (CommonJS export still present when `module` exists).
-- No other files changed.
+- `ui/requestClassifierInterop.js`
+- `tests/requestClassifier.test.js`
+- `docs/40-specs/SPC-001-foundry-request-classification.md`
+- `docs/40-specs/SPC-002-frontend-ui.md`
 
-### Expected evidence
-- Diff or patch snippet showing only the guarded export change.
-- Note of file path and the exact lines changed.
+### Source-of-truth and evidence scope
 
----
+- `docs/60-microtasks/MTP-005-cjs-browser-interop-fix.md`
+- `docs/30-validation/VAL-005-cjs-browser-interop-fix.md`
 
-## MT-003 — Validator: Verify guard and provide manual runtime checklist
-- Owner: Validator
-- Status: [x]
+### Forbidden scope
 
-### Evidence
-- Validator packet recorded in: `docs/30-validation/VAL-005-cjs-browser-interop-fix.md` (**VALIDATION_PASSED** for `FLOW-MTP-005-MT-002-003`; notes: guard present, interop import ok, tests reference ok, evidence-based scope compliance).
-- Addendum (user-run evidence captured in VAL-005): runtime `npm run preview` console screenshot shows no module error; `npm test` output indicates all Jest tests passed.
+- package files
+- lockfiles
+- dependency changes
+- Vite config changes
+- build config changes
+- deployment files
+- tests
+- UI source changes
+- classifier logic changes
+- classifier output changes
+- backend services
+- secrets
+- environment files
+- agent-system docs
+- agent prompt files
 
-### Purpose
-Confirm the guard exists, that UI interop still references the classifier, and provide a user-run manual verification checklist.
+## Minimal Fix
 
-### Scope layers
-- **Allowed (read-only):**
-  - `src/requestClassifier.js`
-  - `ui/requestClassifierInterop.js`
-  - `tests/requestClassifier.test.js`
-  - this MTP for checklist updates if needed (optional)
-- **Forbidden (must not modify):**
-  - All source files (Validator is read-only)
-  - `package*.json`, Vite config, dependencies/lockfiles
+Guard the CommonJS export assignment so it only runs when `module` exists.
 
-### Validation steps
-1. **Static check (read-only):**
-   - Confirm `src/requestClassifier.js` contains the guard:
-     - `typeof module !== 'undefined' && module.exports`
-   - Confirm the unguarded `module.exports = ...` is not present as a top-level statement that will execute in browser.
-2. **Interop check (read-only):**
-   - Confirm `ui/requestClassifierInterop.js` still imports/uses the classifier as expected (no required change for this fix).
-3. **Test reference check (read-only):**
-   - Confirm `tests/requestClassifier.test.js` still references classifier entry points as expected.
+Required behavior:
 
-### Manual runtime verification checklist (user-run)
-- Run dev server:
-  - `npm run dev`
-- In the UI:
-  - Navigate to a request entry flow that triggers classification.
-  - Click **Classify**.
-  - Confirm there is **no** `ReferenceError: module is not defined` in the browser console.
-  - Confirm classifier output appears and is consistent with prior expected behavior.
-- Optional (recommended) user-run tests:
-  - `npm test`
+- In Node/Jest contexts where `module.exports` exists, preserve CommonJS export.
+- In browser contexts where `module` does not exist, do not throw.
+- Do not change `classifyRequest` logic.
 
-### Acceptance criteria
-- Validator reports:
-  - Guard is present in `src/requestClassifier.js`.
-  - No evidence of the prior browser `module` reference error on classification (based on manual checklist outcomes provided by user) OR provides the checklist and indicates that user-run confirmation is required.
+Preferred implementation shape:
 
-### Expected evidence
-- Validation note with:
-  - File paths verified.
-  - The exact guarded snippet (quoted) and/or line reference.
-  - Manual checklist included (or referenced to this MTP section).
+- `if (typeof module !== 'undefined' && module.exports) { module.exports = { classifyRequest }; }`
 
----
+## Acceptance Criteria
 
-## MT-004 — Source-of-Truth Author: Record closure & evidence pointers
-- Owner: Source-of-Truth Author
-- Status: [x]
+### AC-MTP-005-001 Browser runtime no longer throws module ReferenceError
 
-### Evidence
-- This MTP updated to reflect closure status and evidence pointers.
-- Consolidated evidence record created: `docs/30-validation/VAL-005-cjs-browser-interop-fix.md`.
+When the browser UI loads and classification runs, the previous error is not observed:
 
-### Purpose
-Record closure status and pointers to execution and validation evidence for this micro-task pack.
+- `ReferenceError: module is not defined`
 
-### Scope layers
-- **Allowed (docs only):**
-  - `docs/60-microtasks/MTP-005-cjs-browser-interop-fix.md` (update checkboxes + evidence links)
-  - Optional: create/update a validation evidence record under `docs/30-validation/` if required by your workflow
-- **Forbidden:**
-  - Any `src/**`, `ui/**`, `tests/**` edits
-  - `package*.json`, Vite config, dependencies/lockfiles
+### AC-MTP-005-002 Classifier behavior is unchanged
 
-### Closure requirements
-- Update MT statuses to `[x]` when evidence is available.
-- Add an "Evidence" section with pointers (paths/links) to:
-  - Code Author diff evidence (MT-002)
-  - Validator report/checklist results (MT-003)
-  - Governance approval note (MT-001)
+The fix must not alter classifier output.
 
-### Acceptance criteria
-- MTP reflects accurate completion status and contains traceable evidence pointers.
+### AC-MTP-005-003 Node/Jest compatibility remains
 
-### Expected evidence
-- Updated MTP with:
-  - completed checkboxes
-  - evidence links/paths
-  - brief closure note
+CommonJS export must still be available when `module.exports` exists.
+
+### AC-MTP-005-004 No dependency or configuration changes
+
+The fix must not require:
+
+- new dependencies
+- package file changes
+- lockfile changes
+- Vite config changes
+- build config changes
+
+### AC-MTP-005-005 Scope remains bounded
+
+Only the approved implementation file may change:
+
+- `src/requestClassifier.js`
+
+## Micro-tasks
+
+### [x] MT-001 — Governance approval for bounded guard-only change
+
+Owner: Governance Agent
+
+Purpose:
+
+- Approve the minimal implementation scope for guarding the CommonJS export.
+
+Review inputs:
+
+- `docs/60-microtasks/MTP-005-cjs-browser-interop-fix.md`
+- `src/requestClassifier.js`, as proposed implementation target
+
+Approved implementation file:
+
+- `src/requestClassifier.js`
+
+Forbidden:
+
+- package files
+- lockfiles
+- dependencies
+- Vite config
+- UI files
+- tests
+- deployment files
+- secrets
+- agent-system docs
+- agent prompt files
+
+Decision criteria:
+
+- Fix is strictly additive and guard-only.
+- Fix does not change classifier logic.
+- Fix does not require configuration or dependency changes.
+
+Evidence:
+
+- `docs/30-validation/VAL-005-cjs-browser-interop-fix.md`
+- Governance decision: APPROVED.
+- Scope bounded to `src/requestClassifier.js`.
+
+Status:
+
+- Completed.
+
+### [x] MT-002 — Implement guarded CommonJS export
+
+Owner: Code Author
+
+Purpose:
+
+- Prevent browser `ReferenceError` by guarding the CommonJS export assignment.
+
+Allowed files:
+
+- `src/requestClassifier.js`
+
+Forbidden:
+
+- any other source files
+- UI files
+- tests
+- package files
+- lockfiles
+- dependency changes
+- Vite config changes
+- deployment files
+- secrets
+- docs, except closure/evidence handled by source-of-truth steps
+
+Requirements:
+
+- Locate the existing CommonJS export assignment.
+- Replace the unguarded `module.exports` assignment with a guarded version.
+- Preserve Node/Jest CommonJS compatibility.
+- Do not change classifier logic.
+- Do not refactor unrelated code.
+- Do not change formatting beyond the minimal required edit.
+
+Acceptance criteria:
+
+- Browser no longer throws `ReferenceError: module is not defined`.
+- CommonJS export remains available in Node/Jest contexts.
+- No classifier output changes are introduced.
+- No other files are modified by this implementation task.
+
+Evidence:
+
+- Modified file: `src/requestClassifier.js`
+- Summary: guarded `module.exports` assignment with `typeof module !== 'undefined' && module.exports`.
+- Validation evidence: `docs/30-validation/VAL-005-cjs-browser-interop-fix.md`
+
+Status:
+
+- Completed.
+
+### [x] MT-003 — Validate export guard and runtime behavior
+
+Owner: Validator
+
+Purpose:
+
+- Validate the guarded export fix through static inspection and user-run runtime evidence.
+
+Allowed read scope:
+
+- `src/requestClassifier.js`
+- `ui/requestClassifierInterop.js`
+- `tests/requestClassifier.test.js`
+- `docs/60-microtasks/MTP-005-cjs-browser-interop-fix.md`
+
+Allowed evidence scope:
+
+- `docs/30-validation/VAL-005-cjs-browser-interop-fix.md`
+
+Forbidden:
+
+- implementation changes
+- test changes
+- UI changes
+- package changes
+- dependency changes
+- Vite config changes
+- deployment changes
+- secrets
+- agent-system docs
+
+Validation requirements:
+
+- Confirm guard exists around `module.exports`.
+- Confirm there is no unguarded browser-executed `module.exports` statement.
+- Confirm classifier interop reference remains compatible.
+- Record user-run runtime evidence when provided.
+- Record user-run test evidence when provided.
+- State clearly that runtime evidence was user-run if agents did not execute commands.
+
+Acceptance criteria:
+
+- Static inspection confirms guarded export.
+- Runtime evidence confirms prior browser error is not observed.
+- User-run test evidence confirms Jest tests pass.
+- Validation report preserves limitations honestly.
+
+Evidence:
+
+- `docs/30-validation/VAL-005-cjs-browser-interop-fix.md`
+- User-run preview evidence indicated no module-related ReferenceError during classification flow.
+- User-run `npm test` evidence reported the classifier test suite passing.
+
+Status:
+
+- Completed.
+
+### [x] MT-004 — Source-of-truth closure and evidence links
+
+Owner: Source-of-Truth Author
+
+Purpose:
+
+- Close the micro-task pack and link validation evidence.
+
+Allowed files:
+
+- `docs/60-microtasks/MTP-005-cjs-browser-interop-fix.md`
+- `docs/30-validation/VAL-005-cjs-browser-interop-fix.md`
+
+Forbidden:
+
+- implementation changes
+- tests
+- UI changes
+- package changes
+- dependency changes
+- Vite config changes
+- deployment files
+- secrets
+- agent-system docs
+- agent prompt files
+
+Requirements:
+
+- Mark all micro-tasks completed.
+- Link governance, implementation, and validation evidence.
+- Preserve user-run runtime evidence attribution.
+- Do not reopen implementation scope.
+- Do not claim classifier behavior changed.
+
+Acceptance criteria:
+
+- MTP reflects completed status.
+- Validation evidence is linked.
+- Runtime evidence attribution is honest.
+- No unapproved files are added to the implementation scope.
+
+Evidence:
+
+- `docs/30-validation/VAL-005-cjs-browser-interop-fix.md`
+- This MTP closure record.
+
+Status:
+
+- Completed.
+
+## Validation Evidence Summary
+
+Validation record:
+
+- `docs/30-validation/VAL-005-cjs-browser-interop-fix.md`
+
+Validation basis:
+
+- Static inspection of export guard.
+- User-run browser runtime evidence.
+- User-run `npm test` evidence.
+
+Important limitation:
+
+- Agents did not independently execute runtime commands.
+- Scope validation was evidence-based where repo-wide diff proof was unavailable.
+
+## Product Outcome
+
+The browser UI no longer fails due to an unguarded CommonJS export statement.
+
+The fix preserves:
+
+- classifier behavior;
+- Node/Jest compatibility;
+- browser UI compatibility;
+- bounded implementation scope.
+
+## Relationship to MTP-007
+
+MTP-005 fixed the initial browser runtime `module is not defined` error.
+
+A later interop issue specific to Vite dev-server export resolution was addressed separately in:
+
+- `docs/60-microtasks/MTP-007-vite-dev-classifier-interop.md`
+
+The two packs are related but distinct:
+
+- MTP-005: prevent browser crash from unguarded `module.exports`.
+- MTP-007: ensure Vite dev-server can resolve `classifyRequest` consistently.
+
+## Final Status
+
+MTP-005 is complete and retained as a bounded product runtime bugfix record.
