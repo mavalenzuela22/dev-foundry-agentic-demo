@@ -22,9 +22,18 @@ This file captures where the session stopped, what was completed, what rules now
 
 The project is an Alita-powered Dev Foundry agentic demo using a small guinea-pig app called Foundry Request Board.
 
+## Start-of-Next-Session Rule
+
+At the start of the next session:
+
+1. Remind the user to run `git pull` unless they already confirm it.
+2. Read `.dev-foundry/session-handoff.md`.
+3. Read `.dev-foundry/session-scratchpad.md`.
+4. Do not plan, prompt, or modify artifacts before reading both files.
+
 ## Important Session Outcome
 
-This session moved beyond only building the Foundry Request Board app. It also hardened the Dev Foundry Alita-powered agent system itself.
+This session hardened both the Foundry Request Board demo application and the Dev Foundry Alita-powered agent system.
 
 Two distinct workstreams must remain separated:
 
@@ -35,7 +44,7 @@ Do not mix agent-system hardening into the app `SPC/TSK/MTP` chain.
 
 ## Current Working Model
 
-The demo uses these active agents:
+The active Alita agents are:
 
 - Dev Foundry Orchestrator
 - Dev Foundry Context Analyst
@@ -47,14 +56,15 @@ The demo uses these active agents:
 
 The Orchestrator is coordination-only. It may use read-only tools if assigned, but it must not write repository files.
 
-The system now follows a Flow Evidence Manifest model:
+The system now follows the Flow Evidence Manifest operating model:
 
 - Orchestrator owns the Flow Evidence Manifest.
 - Orchestrator resolves routing and scope facts once when possible.
 - Orchestrator passes the manifest to downstream agents.
-- Child agents must not repeatedly rediscover repository state that is already present in the manifest.
+- Child agents must not repeatedly rediscover repository state already present in the manifest.
 - Every write-capable agent returns an evidence packet.
 - Validator uses evidence-based scope validation when git diff or changed-files tooling is unavailable.
+- Filesystem MCP should be used as initial fact source and target inspection, not repeated workflow memory.
 
 ## Foundry Request Board App State
 
@@ -88,7 +98,7 @@ Runtime limitation:
 
 ## Agentic Slice 001 Summary
 
-Slice 001 established the initial classifier behavior and retroactively hardened it into source-of-truth documents.
+Slice 001 established initial classifier behavior and retroactively hardened it into source-of-truth documents.
 
 Relevant artifacts:
 
@@ -140,7 +150,7 @@ The translation/template alignment flow for the Slice 002 summary exposed an own
 
 ### Orchestrator Consolidation
 
-The Orchestrator had a separate hardening file earlier. It has been consolidated into a single canonical prompt file:
+The Orchestrator is now a single canonical prompt file:
 
 - `docs/10-agents/orchestrator.md`
 
@@ -155,7 +165,7 @@ Relevant commits:
 
 ### Context Analyst Routing Resolver
 
-Context Analyst was updated so the Orchestrator can delegate read-only repo/MTP/MT resolution when the Orchestrator lacks direct filesystem access.
+Context Analyst can resolve repo/MTP/MT routing when the Orchestrator needs read-only resolver help.
 
 Commit:
 
@@ -163,7 +173,7 @@ Commit:
 
 ### Orchestrator Resolver Delegation
 
-The Orchestrator was updated to delegate repo/MTP/MT resolution to Context Analyst instead of asking the user for repo root when it lacks filesystem tools.
+The Orchestrator can delegate repo/MTP/MT resolution to Context Analyst instead of asking the user for repo root when filesystem read context is available.
 
 Commit:
 
@@ -171,13 +181,7 @@ Commit:
 
 ### Artifact Owner Routing
 
-A bug was found: governed docs under `docs/30-validation/`, `docs/40-specs/`, `docs/50-tasks/`, `docs/60-microtasks/`, or `docs/00-product/source-of-truth-map.md` must be owned by Source-of-Truth Author, even if the verb is `translate`, `edit`, `rewrite`, or `align template`.
-
-Updated agents:
-
-- Orchestrator
-- Source-of-Truth Author
-- Governance
+Governed docs under `docs/30-validation/`, `docs/40-specs/`, `docs/50-tasks/`, `docs/60-microtasks/`, `docs/70-agent-system/`, or `docs/00-product/source-of-truth-map.md` must be owned by Source-of-Truth Author, even if the verb is `translate`, `edit`, `rewrite`, or `align template`.
 
 Relevant commits:
 
@@ -187,17 +191,14 @@ Relevant commits:
 
 ### Flow Evidence Manifest / No-Diff Validation
 
-The main performance and validation-hardening decision was recorded under agent-system docs:
+Main agent-system hardening document:
 
 - `docs/70-agent-system/hardening/HARD-001-flow-evidence-manifest.md`
 
-Initial HARD-001 commit:
+Relevant commits:
 
-- `273d3fdaefc6bdc5f3d360dbf50336fcb49aa64b`
-
-HARD-001 strengthened for MCP read reduction:
-
-- `9dc9eecbf09be27e63aab4451d7a8a2c50cf8231`
+- HARD-001 created: `273d3fdaefc6bdc5f3d360dbf50336fcb49aa64b`
+- HARD-001 strengthened for MCP read reduction: `9dc9eecbf09be27e63aab4451d7a8a2c50cf8231`
 
 Core HARD-001 rules:
 
@@ -211,7 +212,7 @@ Core HARD-001 rules:
 
 ### Flow Evidence Manifest Agent Updates
 
-Required agent updates completed:
+All seven active agent prompts were updated for the Flow Evidence Manifest model:
 
 - Orchestrator Flow Evidence Manifest: `3d44c82a0dc56225872ebbd0101eb7b3ee7dc785`
 - Governance scope layers: `f650d0e4cc3215363eefd2d663b9651e991cc1c0`
@@ -231,7 +232,21 @@ All seven active prompts should be updated in Alita:
 - Dev Foundry Code Author
 - Dev Foundry Validator
 
-The user asked whether everything was covered. A quick verification found the active agents listed by the Orchestrator and confirmed these seven are the known operational agents for the current workflow.
+### Secondary Agent-System Documentation Alignment
+
+The user correctly caught that three secondary docs would otherwise preserve outdated guidance.
+
+These were updated at the end of the session:
+
+- `docs/10-agents/agent-system.md` aligned with Flow Evidence Manifest, scope layers, evidence packets, no-diff validation, and MCP read reduction.
+- `docs/10-agents/alita-agent-blueprint.md` aligned with the seven-agent model and Flow Evidence Manifest runtime pattern.
+- `docs/10-agents/alita-system-prompt-standard.md` updated as the standard for future agent prompts, including manifest-first context, scope layers, evidence packets, read budget, and no-diff validation.
+
+Relevant commits:
+
+- `agent-system.md`: `a753b10bc48f57a5fcddb5994a6b881dc2732e62`
+- `alita-agent-blueprint.md`: `f5a246a0077b61bd715695bed0bfd0edae6531c5`
+- `alita-system-prompt-standard.md`: `63afa8503a54c049c3ba98db3a5bcb0c7962a3d2`
 
 ## Current Agent Operating Rules
 
@@ -245,6 +260,7 @@ Foundry Request Board product work remains under app source-of-truth chains such
 
 Dev Foundry Alita-powered agent-system hardening belongs under:
 
+- `docs/10-agents/`
 - `docs/70-agent-system/`
 
 Do not create app MTPs for agent-system hardening.
@@ -329,6 +345,7 @@ It must not become repeated workflow memory.
 6. Do not claim tests were executed in Alita; runtime execution was not available.
 7. Do not create terminal-based test-runner work unless explicitly governed as a future slice.
 8. Do not treat `[x]` on a validation MT as validation success. `[x]` means the activity was executed and evidence was recorded; the outcome lives in Evidence.
+9. Do not forget the secondary docs: `agent-system.md`, `alita-agent-blueprint.md`, and `alita-system-prompt-standard.md` now carry the same operating model and should not drift.
 
 ## Recommended Next Session Start
 
@@ -346,17 +363,21 @@ It must not become repeated workflow memory.
 
 Potential next steps, depending on the user's priority:
 
-1. Test the updated agents with a small doc-only governed request.
+1. Test the updated agents with a small read-only status query.
 2. Test `ejecuta el siguiente MT del MTP-002` only if there are pending MTs; otherwise ask the Orchestrator to report no pending MT.
 3. Start a new app slice for Foundry Request Board, likely one of:
    - a minimal CLI classification interface;
    - formalizing static-validation-only constraints;
    - a small UI or request-board view;
    - a future CI/test-runner slice if terminal/CI support is approved.
-4. Update secondary architecture/template docs to mention Flow Evidence Manifest if consistency is desired. This is not required for active agent prompts but may improve demo documentation.
+4. Run a focused agent-system smoke test to measure whether MCP reads dropped after the Flow Evidence Manifest hardening.
 
 ## Session Close State
 
-The session ended after all active known agent prompts were updated for the Flow Evidence Manifest model, including mandatory and recommended agents.
+The session ended after:
+
+- all seven active known agent prompts were updated for the Flow Evidence Manifest model;
+- all secondary agent-system documentation was aligned to the same model;
+- session handoff and scratchpad were refreshed for continuity.
 
 No further file changes should be assumed beyond the commits listed here.
