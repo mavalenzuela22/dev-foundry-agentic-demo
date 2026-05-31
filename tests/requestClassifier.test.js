@@ -18,6 +18,20 @@ describe('classifyRequest', () => {
     expect(result.reason.toLowerCase()).toContain('bounded');
   });
 
+  test("treats negated 'code' phrase as documentation-only (regression)", () => {
+    const result = classifyRequest(
+      'Update the README documentation for security guidance. No code changes.'
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: 'documentation',
+        risk: 'low',
+        mode: 'bounded_execution_ready'
+      })
+    );
+  });
+
   test('does not classify mixed doc + code request as documentation-only', () => {
     const result = classifyRequest(
       'Update docs for the API and implement the new endpoint in the server.'

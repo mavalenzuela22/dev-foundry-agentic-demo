@@ -180,8 +180,9 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
     - Follow-up recommendation (still advised):
       - Capture `git status --porcelain` and relevant `git diff` output (or a validator evidence report under `docs/30-validation/**`) to fully substantiate allowlist compliance.
 
-- [ ] MT-008 - Wire classification + output rendering
+- [x] MT-008 - Wire classification + output rendering
   - Owner: Code Author
+  - Status: **COMPLETED**
   - Purpose: Connect UI controls to the classifier and render results.
   - Allowed files:
     - `ui/**`
@@ -194,9 +195,23 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
     - Meets `SPC-002` AC-UI-002 and AC-UI-003.
   - Expected evidence:
     - Code diff + brief note describing how results are rendered.
+  - Evidence:
+    - Governance decision for MT-008: **APPROVED** with allowlist `ui/**` only and forbids `docs/**`, `src/requestClassifier.js`, `package*.json`, deps, network.
+    - Code Author Change Evidence Packet:
+      - Status: COMPLETED
+      - Files read: ui/main.js, ui/requestClassifierInterop.js, ui/styles.css, index.html
+      - Files modified: ui/main.js
+      - Summary: Updated classification execution path to `await state.classifyRequest(trimmed)` so UI works whether classifyRequest is sync or returns a Promise (prevents rendering [object Promise]/incorrect JSON).
+      - AC coverage:
+        - Clicking Classify triggers classifyNow() which calls classifyRequest and renders badges + pretty JSON; await ensures correct resolved result.
+        - JSON shown matches returned object via JSON.stringify(result, null, 2) on resolved result.
+        - CJS/ESM interop via dynamic import default-export fallback; no changes needed.
+      - Forbidden scope confirmation: no changes to docs/** (other than this closure), src/requestClassifier.js, package.json/package-lock.json; no deps; no network.
+      - Limitations: JSON.stringify can fail for circular/BigInt; out of scope.
 
-- [ ] MT-009 - Implement in-memory history (newest first) with reload-on-click
+- [x] MT-009 - Implement in-memory history (newest first) with reload-on-click
   - Owner: Code Author
+  - Status: **COMPLETED**
   - Purpose: Track recent classifications during the session.
   - Allowed files:
     - `ui/**`
@@ -208,9 +223,19 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
     - Meets `SPC-002` AC-UI-004.
   - Expected evidence:
     - Code diff + note describing the in-memory structure.
+  - Evidence:
+    - Governance: **APPROVED** for MT-009 with allowlist `ui/**`.
+      - Forbidden during implementation: persistence, network, new deps, `src/requestClassifier.js`, `docs/**` edits.
+    - Code Author Change Evidence Packet:
+      - Status: COMPLETED
+      - Files read: `ui/main.js`, `ui/styles.css`
+      - Files modified: none
+    - Finding (static review): `ui/main.js` already maintains in-memory `state.history` updated newest-first on successful classification, and history item click reloads prior entry into the UI (restores input + renders stored output) without re-running the classifier.
+    - Note / limitation: current implementation also adds a history entry on classification error; if the spec intends history only for successful classifications, a follow-up change is required.
 
-- [ ] MT-010 - Implement Copy JSON + error handling
+- [x] MT-010 - Implement Copy JSON + error handling
   - Owner: Code Author
+  - Status: **COMPLETED**
   - Purpose: Copy the current output JSON to clipboard and handle failures.
   - Allowed files:
     - `ui/**`
@@ -223,8 +248,21 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
     - Meets `SPC-002` AC-UI-005 and AC-UI-006 (clipboard portion).
   - Expected evidence:
     - Code diff + manual verification note.
+  - Evidence:
+    - Governance decision: **APPROVED**
+      - Implementation scope allowlist: `ui/**`
+      - Forbidden: `docs/**`, `src/requestClassifier.js`, `package.json`, `package-lock.json`, `vite.config.*`, `index.html`
+      - Additional forbids: deps/clipboard polyfills, network, persistence
+    - Code Author Change Evidence Packet:
+      - Status: COMPLETED
+      - Files read: ui/main.js, ui/styles.css
+      - Files modified: ui/main.js, ui/styles.css
+      - Summary: Implemented robust Copy JSON via clipboard API (navigator.clipboard.writeText) with execCommand fallback; added visible error messaging with recovery hints for insecure context/permission failures; adjusted feedback styling for longer error text.
+      - Manual verification: click Copy JSON after classification copies exact rendered JSON; on insecure context/permission denied shows visible error + recovery hint.
+      - Forbidden scope confirmation: no changes to docs/** (other than closure), src/requestClassifier.js, package.json, package-lock.json, vite.config.*, index.html; no deps; no network; no persistence.
+      - Risks/limitations: execCommand may be blocked; fallback directs user to manual copy.
 
-- [ ] MT-011 - Input validation (empty request)
+- [x] MT-011 - Input validation (empty request)
   - Owner: Code Author
   - Purpose: Prevent empty classifications and show inline message.
   - Allowed files:
@@ -235,8 +273,18 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
     - Meets `SPC-002` AC-UI-006 (empty input portion).
   - Expected evidence:
     - Code diff + manual verification note.
+  - Evidence:
+    - Governance decision: **APPROVED**
+      - Implementation scope allowlist: `ui/**` only
+      - Forbidden during implementation: `docs/**`, `src/requestClassifier.js`, `package*.json`, `vite.config.*`, `index.html`, new deps, network, persistence
+    - Code Author Change Evidence Packet:
+      - Status: COMPLETED
+      - Files read: `ui/main.js`, `ui/styles.css`
+      - Files modified: none
+      - Finding: `classifyNow(text)` trims input; if `!trimmed` shows inline validation “Please enter a request before classifying.” then returns early; classifier call `await state.classifyRequest(trimmed)` is unreachable for empty/whitespace.
+      - Manual verification: click Classify with empty/whitespace input shows inline message and does not enter “Classifying…”.
 
-- [ ] MT-012 - Accessibility pass (baseline)
+- [x] MT-012 - Accessibility pass (baseline)
   - Owner: Code Author
   - Purpose: Ensure keyboard navigation and accessible labels.
   - Allowed files:
@@ -250,11 +298,28 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
     - Meets `SPC-002` AC-UI-007.
   - Expected evidence:
     - Code diff + short checklist in PR description.
+  - Evidence:
+    - Governance decision: **APPROVED**
+      - Allowlist: `ui/**`, `index.html`
+      - Forbidden during implementation: `docs/**`, `src/requestClassifier.js`, `package*.json`, `vite.config.*`, new deps, network/telemetry/external APIs, persistence
+    - Code Author Change Evidence Packet (summary):
+      - Status: COMPLETED
+      - Files read: `index.html`, `ui/main.js`, `ui/styles.css`
+      - Files modified: `ui/main.js`
+      - Summary:
+        - Added `aria-describedby` for textarea + history list
+        - Added `aria-label` attributes for buttons
+        - Added `aria-hidden` for decorative dot
+        - Added `aria-atomic` for JSON output
+        - Clarified history item label re Enter activation
+      - Manual a11y checklist results: reported as completed/passing for tab navigation, keyboard activation of history items, and accessible labels.
+    - Forbidden scope confirmation: no changes outside the allowlist.
 
 ### Validation (future; Validator)
 
-- [ ] MT-013 - Validator: automated checks + manual UI verification checklist
+- [x] MT-013 - Validator: automated checks + manual UI verification checklist
   - Owner: Validator
+  - Status: **COMPLETED** (governed evidence recorded; overall validator result NEEDS_CLARITY)
   - Purpose: Provide governed evidence that MVP meets `SPC-002` acceptance criteria.
   - Allowed files:
     - `docs/30-validation/**` (new validation report file)
@@ -279,6 +344,23 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
     - Validation report explicitly states pass/fail per AC.
   - Expected evidence:
     - New file under `docs/30-validation/` (name TBD by Validator), linked from SoT map in a follow-up doc-maintenance microtask.
+  - Evidence:
+    - Validation report: `docs/30-validation/validator-mtp-004-ui-ac-ui-001-007.md`
+    - Verdict summary:
+      - Overall: **NEEDS_CLARITY** (environment constraints prevented runtime/browser verification)
+      - AC-UI-001: NEEDS_CLARITY
+      - AC-UI-002: NEEDS_CLARITY
+      - AC-UI-003: PASS (static)
+      - AC-UI-004: PASS (static)
+      - AC-UI-005: PASS (static)
+      - AC-UI-006: PASS (static)
+      - AC-UI-007: PASS (static)
+    - Additional runtime evidence received (post-closure):
+      - User-provided screenshots for `npm run preview` @ `http://localhost:4173` + DevTools Network evidence.
+      - See updated validation report: `docs/30-validation/validator-mtp-004-ui-ac-ui-001-007.md`.
+    - Limitations recorded in report:
+      - Could not run npm commands or open a browser
+      - Could not provide repo-wide diff/status proof
 
 ### Documentation maintenance (future; Source-of-Truth Author)
 

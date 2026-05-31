@@ -452,6 +452,8 @@ h1 {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.72);
   padding: 0 6px;
+  max-width: 420px;
+  text-align: right;
 }
 
 .copyFeedback[data-kind="ok"] {

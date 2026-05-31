@@ -95,10 +95,18 @@ This delta adds deterministic handling for security-related requests.
     - `risk: low`
     - `mode: bounded_execution_ready`
 
+**DELTA: Explicit negated code intent (doc-only security false positive prevention)**
+
+When documentation intent signals are present, explicit negation phrases about code work MUST suppress code intent detection for the purposes of the doc-only security exception.
+
+- If the word `code` appears only inside an explicit negation phrase (e.g., “no code changes”), it MUST NOT be treated as a code intent signal.
+- This rule exists to prevent false positives where a request is explicitly documentation-only but mentions `code` only to negate code work.
+
 **Normative examples (delta):**
 1. "Fix vulnerability in auth" => `type: code`, `risk: medium`, `mode: needs_review`
 2. "ciberseguridad hardening" => `type: code`, `risk: medium`, `mode: needs_review`
 3. "actualizar documentación de seguridad" => `type: documentation`, `risk: low`, `mode: bounded_execution_ready`
+4. "Update the README documentation for security guidance. No code changes." => `type: documentation`, `risk: low`, `mode: bounded_execution_ready`
 
 ## Acceptance criteria (Slice 001)
 

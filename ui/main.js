@@ -141,17 +141,23 @@ function setInputValidation(message) {
 function setCopyFeedback(kind, message) {
   const el = document.getElementById('copy-feedback');
   if (!el) return;
-  el.textContent = String(message || '');
-  el.setAttribute('data-kind', kind || '');
-  if (message) {
-    window.clearTimeout(setCopyFeedback._t);
-    setCopyFeedback._t = window.setTimeout(() => {
-      const el2 = document.getElementById('copy-feedback');
-      if (!el2) return;
-      el2.textContent = '';
-      el2.setAttribute('data-kind', '');
-    }, 1600);
-  }
+
+  const msg = String(message || '');
+  const k = String(kind || '');
+
+  el.textContent = msg;
+  el.setAttribute('data-kind', k);
+
+  window.clearTimeout(setCopyFeedback._t);
+  if (!msg) return;
+
+  const ttl = k === 'error' ? 6000 : 1600;
+  setCopyFeedback._t = window.setTimeout(() => {
+    const el2 = document.getElementById('copy-feedback');
+    if (!el2) return;
+    el2.textContent = '';
+    el2.setAttribute('data-kind', '');
+  }, ttl);
 }
 
 function renderShell(rootEl) {
@@ -166,7 +172,7 @@ function renderShell(rootEl) {
           </div>
         </div>
         <div class="statusPill" aria-live="polite">
-          <span class="statusDot" data-kind="loading" id="status-dot"></span>
+          <span class="statusDot" data-kind="loading" id="status-dot" aria-hidden="true"></span>
           <span id="status-text">Loading…</span>
         </div>
       </header>
@@ -188,18 +194,18 @@ function renderShell(rootEl) {
               autocomplete="off"
               spellcheck="true"
               aria-labelledby="request-input-label"
-              aria-describedby="input-validation"
+              aria-describedby="input-validation request-hint"
             ></textarea>
             <div id="input-validation" class="inlineValidation" role="status" aria-live="polite" style="display:none"></div>
           </label>
 
           <div class="actions">
-            <button id="classify-btn" class="btn btnPrimary" type="button">Classify</button>
-            <button id="sample-btn" class="btn btnGhost" type="button">Use sample</button>
-            <button id="clear-btn" class="btn btnGhost" type="button">Clear</button>
+            <button id="classify-btn" class="btn btnPrimary" type="button" aria-label="Classify request">Classify</button>
+            <button id="sample-btn" class="btn btnGhost" type="button" aria-label="Insert sample request">Use sample</button>
+            <button id="clear-btn" class="btn btnGhost" type="button" aria-label="Clear request and output">Clear</button>
           </div>
 
-          <p class="hint">
+          <p class="hint" id="request-hint">
             Tip: <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> to classify.
           </p>
         </section>
@@ -215,6 +221,7 @@ function renderShell(rootEl) {
             class="codeblock"
             aria-label="JSON viewer"
             aria-live="polite"
+            aria-atomic="true"
             tabindex="0"
           >No output yet.</pre>
 
@@ -239,7 +246,12 @@ function renderShell(rootEl) {
           </div>
 
           <p class="hint" id="history-hint">Select an item to reload the output.</p>
-          <ul id="history-list" class="historyList" aria-label="Session history"></ul>
+          <ul
+            id="history-list"
+            class="historyList"
+            aria-label="Session history"
+            aria-describedby="history-hint"
+          ></ul>
           <div id="history-empty" class="emptyState">
             No history yet. Run a classification to see it here.
           </div>
@@ -341,7 +353,7 @@ function renderHistory() {
         })
         .join('');
 
-      const ariaLabel = `History item ${idx + 1}. ${title || 'Empty request'}.`;
+      const ariaLabel = `History item ${idx + 1}. ${title || 'Empty request'}. Press Enter to load output.`;
 
       return `
         <li class="historyItem" data-id="${escapeHtml(item.id)}">
@@ -378,6 +390,71 @@ function setActiveHistory(id) {
   renderHistory();
 }
 
+function explainClipboardError(err) {
+  const msg = String(err?.message || err || '').toLowerCase();
+
+  if (!globalThis.isSecureContext) {
+    return {
+      title: 'Copy failed: insecure context',
+      hint: 'Use https:// or http://localhost (clipboard API requires a secure context).'
+    };
+  }
+
+  if (err && (err.name === 'NotAllowedError' || /notallowed|permission|denied/.test(msg))) {
+    return {
+      title: 'Copy blocked by browser permission',
+      hint: 'Allow clipboard access (or try a different browser / page refresh), then try again.'
+    };
+  }
+
+  if (err && (err.name === 'NotFoundError' || /notfound/.test(msg))) {
+    return {
+      title: 'Clipboard not available',
+      hint: 'Try a different browser or copy directly from the JSON viewer.'
+    };
+  }
+
+  return {
+    title: 'Copy failed',
+    hint: 'Copy directly from the JSON viewer (select all) and try again.'
+  };
+}
+
+async function tryCopyToClipboard(text) {
+  const t = String(text || '');
+  if (!t) {
+    return { ok: false, reason: new Error('Nothing to copy') };
+  }
+
+  // Primary: async clipboard API
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(t);
+      return { ok: true };
+    } catch (err) {
+      // Continue to fallback below.
+      return { ok: false, reason: err };
+    }
+  }
+
+  // Fallback: execCommand
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = t;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    if (!ok) throw new Error('execCommand copy failed');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: err };
+  }
+}
+
 async function classifyNow(text) {
   if (!state.classifyRequest) {
     setStatus('error', 'Classifier not loaded');
@@ -396,7 +473,8 @@ async function classifyNow(text) {
   setStatus('classifying', 'Classifying…');
 
   try {
-    const result = state.classifyRequest(trimmed);
+    // Support both sync and async classifier implementations.
+    const result = await state.classifyRequest(trimmed);
     const item = {
       id: makeId(),
       ts: Date.now(),
@@ -448,36 +526,22 @@ function bindEvents() {
     });
   }
 
+  if (input) {
+    input.addEventListener('focus', () => setCopyFeedback('', ''));
+  }
+
   const copyBtn = document.getElementById('copy-json-btn');
   if (copyBtn) {
     copyBtn.addEventListener('click', async () => {
       const text = String(state.currentJsonText || '');
-      if (!text) {
-        setCopyFeedback('error', 'Nothing to copy');
+      const res = await tryCopyToClipboard(text);
+      if (res.ok) {
+        setCopyFeedback('ok', 'Copied');
         return;
       }
 
-      try {
-        await navigator.clipboard.writeText(text);
-        setCopyFeedback('ok', 'Copied');
-      } catch {
-        try {
-          // Fallback for restricted environments
-          const ta = document.createElement('textarea');
-          ta.value = text;
-          ta.setAttribute('readonly', '');
-          ta.style.position = 'fixed';
-          ta.style.left = '-9999px';
-          document.body.appendChild(ta);
-          ta.select();
-          const ok = document.execCommand('copy');
-          document.body.removeChild(ta);
-          if (!ok) throw new Error('execCommand copy failed');
-          setCopyFeedback('ok', 'Copied');
-        } catch {
-          setCopyFeedback('error', 'Copy failed');
-        }
-      }
+      const { title, hint } = explainClipboardError(res.reason);
+      setCopyFeedback('error', `${title}. ${hint}`);
     });
   }
 

@@ -38,6 +38,17 @@ function detectCodeSignals(normalizedText) {
   // Any explicit non-documentation work should prevent documentation-only classification.
   // NOTE: security-related handling is implemented separately (see detectSecuritySignals)
   // to allow the doc-only security exception to take precedence.
+
+  // Explicit negation phrases: do not treat these as code intent.
+  // This prevents false positives from the standalone token "code" (e.g., "No code changes.").
+  const negatedCodeIntentPatterns = [
+    /\bno code changes\b/g,
+    /\bno code change\b/g,
+    /\bwithout code changes\b/g,
+    /\bwithout code change\b/g,
+    /\bsin cambios de c[oó]digo\b/g
+  ];
+
   const codePatterns = [
     /\bcode\b/,
     /\bimplement\b/,
@@ -79,7 +90,13 @@ function detectCodeSignals(normalizedText) {
   ];
 
   // Avoid treating "fix typo" as code work
-  const withoutFixTypo = normalizedText.replace(/\bfix typo(s)?\b/g, '');
+  let withoutFixTypo = normalizedText.replace(/\bfix typo(s)?\b/g, '');
+
+  // Suppress code intent from explicit negation phrases.
+  for (const re of negatedCodeIntentPatterns) {
+    withoutFixTypo = withoutFixTypo.replace(re, '');
+  }
+
   return codePatterns.some((re) => re.test(withoutFixTypo));
 }
 
@@ -188,6 +205,21 @@ function classifyRequest(requestText) {
   };
 }
 
-module.exports = {
-  classifyRequest
-};
+// Browser/dev-server fallback: expose the classifier on a stable global.
+// This supports scenarios where CJS->ESM interop fails under Vite dev.
+if (typeof globalThis !== 'undefined') {
+  const existing = globalThis.__foundryRequestClassifier;
+  if (!existing || typeof existing !== 'object') {
+    globalThis.__foundryRequestClassifier = {};
+  }
+
+  if (typeof globalThis.__foundryRequestClassifier.classifyRequest !== 'function') {
+    globalThis.__foundryRequestClassifier.classifyRequest = classifyRequest;
+  }
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    classifyRequest
+  };
+}
