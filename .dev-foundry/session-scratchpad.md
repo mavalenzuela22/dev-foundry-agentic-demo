@@ -21,7 +21,10 @@ Do not mix them.
 
 App behavior and features belong to the Foundry Request Board `SPC/TSK/MTP` chain.
 
-Agent-system behavior belongs under `docs/70-agent-system/`.
+Agent-system behavior belongs under:
+
+- `docs/10-agents/`
+- `docs/70-agent-system/`
 
 ## Session Highlights
 
@@ -51,6 +54,8 @@ The major hardening was a shift to:
 - no-diff validation mode;
 - read budget / MCP read reduction.
 
+All active agents and the secondary agent-system docs were aligned to this model.
+
 ## Files to Remember
 
 ### Active agent prompts
@@ -62,6 +67,14 @@ The major hardening was a shift to:
 - `docs/10-agents/child-agents/scaffolder.md`
 - `docs/10-agents/child-agents/code-author.md`
 - `docs/10-agents/child-agents/validator.md`
+
+### Secondary agent-system docs
+
+These were updated at the very end and must not be forgotten:
+
+- `docs/10-agents/agent-system.md`
+- `docs/10-agents/alita-agent-blueprint.md`
+- `docs/10-agents/alita-system-prompt-standard.md`
 
 ### Agent-system hardening
 
@@ -117,10 +130,18 @@ The major hardening was a shift to:
 - `2c6e5d86190d888829e9931ae95bab580b456109` - Context Analyst manifest-first
 - `c6d1a6c42d768fd0bd45729ee1d4af6d37793566` - Scaffolder manifest-first/evidence packet
 
+### Secondary agent-system docs
+
+- `a753b10bc48f57a5fcddb5994a6b881dc2732e62` - aligned `docs/10-agents/agent-system.md`
+- `f5a246a0077b61bd715695bed0bfd0edae6531c5` - aligned `docs/10-agents/alita-agent-blueprint.md`
+- `63afa8503a54c049c3ba98db3a5bcb0c7962a3d2` - aligned `docs/10-agents/alita-system-prompt-standard.md`
+
 ### Session continuity
 
-- `.dev-foundry/session-handoff.md` created in commit `94df55569cd192a14d0460b501879361bd61c407`
-- `.dev-foundry/session-scratchpad.md` created in the current session after the handoff file
+- `94df55569cd192a14d0460b501879361bd61c407` - created `.dev-foundry/session-handoff.md`
+- `ddf5d77ea739febbfe29a5fe7d157d6589c475b3` - created `.dev-foundry/session-scratchpad.md`
+- `4ba865b7ae20102f1a292a628a901e3f5674e707` - refreshed `.dev-foundry/session-handoff.md` after secondary docs alignment
+- current commit refreshes `.dev-foundry/session-scratchpad.md` after secondary docs alignment
 
 ## Rules to Keep Front of Mind
 
@@ -162,24 +183,28 @@ Alita agents do not currently have terminal access.
 
 Do not claim tests were executed unless there is actual runtime evidence.
 
+### Secondary docs are now aligned
+
+Do not assume `agent-system.md`, `alita-agent-blueprint.md`, or `alita-system-prompt-standard.md` are old/outdated. They were refreshed at the end of the session to preserve the Flow Evidence Manifest model.
+
 ## Open Questions
 
-1. Should secondary docs such as agent blueprints or README be updated to mention Flow Evidence Manifest?
-   - Not required for active prompts.
-   - Could improve demo consistency.
-
-2. Should the next app slice be product-facing or agent-system validation?
+1. Should the next app slice be product-facing or agent-system validation?
    - Product-facing options: CLI, UI, request board view.
    - Agent-system validation option: run a small controlled task and measure MCP calls.
 
-3. Should runtime test execution be added later through CI?
+2. Should runtime test execution be added later through CI?
    - Possible future slice.
    - Do not assume terminal access.
    - Would require governance because it touches package/config/workflow files.
 
-4. Should `.dev-foundry` continuity files be added to source-of-truth map?
+3. Should `.dev-foundry` continuity files be added to source-of-truth map?
    - Not decided.
    - They are session artifacts, not product artifacts.
+
+4. Should a lightweight metric be added to Orchestrator reports for tool calls/read count?
+   - This may help prove MCP read reduction.
+   - Could be part of an agent-system smoke test rather than app work.
 
 ## Recommended First Prompt for Next Session
 
@@ -200,6 +225,7 @@ Current focus:
 - Active agent prompts are under `docs/10-agents/`.
 - Agent-system hardening lives under `docs/70-agent-system/`.
 - The latest model is Flow Evidence Manifest + manifest-first context + scope layers + evidence packets + no-diff validation mode.
+- Secondary docs `agent-system.md`, `alita-agent-blueprint.md`, and `alita-system-prompt-standard.md` are aligned with the model.
 - Do not create app MTPs for agent-system hardening.
 - Do not claim runtime tests were executed; Alita agents do not have terminal access.
 
@@ -218,6 +244,7 @@ Expected behavior:
 - It should not call Code Author.
 - It should use minimal reads or existing manifest/context.
 - It should report no pending MTs if MTP-002 is fully closed.
+- It should avoid unnecessary Context Analyst delegation if it can read directly.
 
 Then test a small doc-only governed change only if needed.
 
@@ -234,4 +261,4 @@ Then test a small doc-only governed change only if needed.
 
 ## End State
 
-Continuity files were created because the current session is closing and work will resume in a new session.
+Continuity files were refreshed because the current session is closing and work will resume in a new session.
