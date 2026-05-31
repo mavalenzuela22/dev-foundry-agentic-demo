@@ -33,7 +33,9 @@ const state = {
   classifyRequest: null,
   history: [],
   activeId: null,
-  status: { kind: 'loading', message: 'Loading classifier…' }
+  status: { kind: 'loading', message: 'Loading classifier…' },
+  currentPayload: null,
+  currentJsonText: ''
 };
 
 function pick(obj, keys) {
@@ -60,65 +62,50 @@ function toBadgeValue(v) {
 }
 
 function inferBadges(result) {
-  if (!result || typeof result !== 'object') return [];
-
-  const badges = [];
-
-  const primary = pick(result, [
-    'route',
-    'decision',
-    'classification',
-    'category',
-    'type',
-    'intent'
-  ]);
-  const confidence = pick(result, ['confidence', 'score', 'probability']);
-  const risk = pick(result, ['risk', 'sensitivity', 'security', 'danger']);
-
-  if (primary != null) {
-    const val = toBadgeValue(primary);
-    if (val) badges.push({ label: 'Class', value: val, tone: 'accent' });
+  // Acceptance criteria expects: Type / Risk / Mode badges.
+  // The classifier output shape may evolve, so this is a best-effort mapper.
+  if (!result || typeof result !== 'object') {
+    return {
+      type: { label: 'Type', value: '—', tone: 'neutral' },
+      risk: { label: 'Risk', value: '—', tone: 'neutral' },
+      mode: { label: 'Mode', value: '—', tone: 'neutral' }
+    };
   }
 
-  if (confidence != null) {
-    const val = toBadgeValue(confidence);
-    if (val) badges.push({ label: 'Confidence', value: val, tone: 'neutral' });
-  }
+  const typeVal = toBadgeValue(
+    pick(result, ['type', 'category', 'classification', 'route', 'intent', 'decision'])
+  );
+  const riskVal = toBadgeValue(
+    pick(result, ['risk', 'sensitivity', 'security', 'danger', 'level'])
+  );
+  const modeVal = toBadgeValue(
+    pick(result, ['mode', 'action', 'strategy', 'operation', 'policy'])
+  );
 
-  if (risk != null) {
-    const val = toBadgeValue(risk);
-    if (val) badges.push({ label: 'Risk', value: val, tone: 'warn' });
-  }
+  const riskTone =
+    riskVal && /high|critical|severe/i.test(riskVal)
+      ? 'warn'
+      : riskVal && /low|none|minimal/i.test(riskVal)
+        ? 'ok'
+        : 'neutral';
 
-  // Add a few extra primitive badges (best-effort to stay useful if shape changes)
-  for (const [k, v] of Object.entries(result)) {
-    if (badges.length >= 6) break;
-    if (
-      k === 'route' ||
-      k === 'decision' ||
-      k === 'classification' ||
-      k === 'category' ||
-      k === 'type' ||
-      k === 'intent' ||
-      k === 'confidence' ||
-      k === 'score' ||
-      k === 'probability' ||
-      k === 'risk' ||
-      k === 'sensitivity' ||
-      k === 'security' ||
-      k === 'danger'
-    ) {
-      continue;
+  return {
+    type: {
+      label: 'Type',
+      value: typeVal || '—',
+      tone: typeVal ? 'accent' : 'neutral'
+    },
+    risk: {
+      label: 'Risk',
+      value: riskVal || '—',
+      tone: riskVal ? riskTone : 'neutral'
+    },
+    mode: {
+      label: 'Mode',
+      value: modeVal || '—',
+      tone: modeVal ? 'neutral' : 'neutral'
     }
-
-    const val = toBadgeValue(v);
-    if (!val) continue;
-
-    const label = k.length > 16 ? `${k.slice(0, 16)}…` : k;
-    badges.push({ label, value: val, tone: 'neutral' });
-  }
-
-  return badges;
+  };
 }
 
 function setStatus(kind, message) {
@@ -135,6 +122,36 @@ function setStatus(kind, message) {
 
   const input = document.getElementById('request-input');
   if (input) input.disabled = kind === 'loading';
+}
+
+function setInputValidation(message) {
+  const msg = String(message || '');
+  const el = document.getElementById('input-validation');
+  const input = document.getElementById('request-input');
+  if (el) {
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+  }
+  if (input) {
+    if (msg) input.setAttribute('aria-invalid', 'true');
+    else input.removeAttribute('aria-invalid');
+  }
+}
+
+function setCopyFeedback(kind, message) {
+  const el = document.getElementById('copy-feedback');
+  if (!el) return;
+  el.textContent = String(message || '');
+  el.setAttribute('data-kind', kind || '');
+  if (message) {
+    window.clearTimeout(setCopyFeedback._t);
+    setCopyFeedback._t = window.setTimeout(() => {
+      const el2 = document.getElementById('copy-feedback');
+      if (!el2) return;
+      el2.textContent = '';
+      el2.setAttribute('data-kind', '');
+    }, 1600);
+  }
 }
 
 function renderShell(rootEl) {
@@ -161,8 +178,8 @@ function renderShell(rootEl) {
             <span class="pill">MVP</span>
           </div>
 
-          <label class="field">
-            <span class="fieldLabel">Paste or type a request</span>
+          <label class="field" for="request-input">
+            <span class="fieldLabel" id="request-input-label">Paste or type a request</span>
             <textarea
               id="request-input"
               class="textarea"
@@ -170,7 +187,10 @@ function renderShell(rootEl) {
               placeholder="e.g. Please update the documentation and do not change any code."
               autocomplete="off"
               spellcheck="true"
+              aria-labelledby="request-input-label"
+              aria-describedby="input-validation"
             ></textarea>
+            <div id="input-validation" class="inlineValidation" role="status" aria-live="polite" style="display:none"></div>
           </label>
 
           <div class="actions">
@@ -187,17 +207,7 @@ function renderShell(rootEl) {
         <section class="card card--result" aria-label="Output">
           <div class="cardTop">
             <h2>Output</h2>
-            <div id="result-badges" class="badgeRow" aria-label="Result badges">
-              <span class="badge badge--neutral" aria-label="Type badge placeholder">
-                <span class="badgeLabel">Type</span><span class="badgeValue">—</span>
-              </span>
-              <span class="badge badge--neutral" aria-label="Risk badge placeholder">
-                <span class="badgeLabel">Risk</span><span class="badgeValue">—</span>
-              </span>
-              <span class="badge badge--neutral" aria-label="Mode badge placeholder">
-                <span class="badgeLabel">Mode</span><span class="badgeValue">—</span>
-              </span>
-            </div>
+            <div id="result-badges" class="badgeRow" aria-label="Result badges"></div>
           </div>
 
           <pre
@@ -209,12 +219,13 @@ function renderShell(rootEl) {
           >No output yet.</pre>
 
           <div class="resultActions" aria-label="Output actions">
+            <div id="copy-feedback" class="copyFeedback" role="status" aria-live="polite"></div>
             <button
               id="copy-json-btn"
               class="btn btnGhost"
               type="button"
-              aria-label="Copy JSON (coming soon)"
-              title="Copy JSON (wiring coming in a later task)"
+              aria-label="Copy JSON"
+              title="Copy JSON"
             >
               Copy JSON
             </button>
@@ -242,41 +253,55 @@ function renderShell(rootEl) {
   `;
 }
 
+function renderBadges(result) {
+  const badgesEl = document.getElementById('result-badges');
+  if (!badgesEl) return;
+
+  const badges = inferBadges(result);
+  const items = [badges.type, badges.risk, badges.mode].filter(Boolean);
+
+  badgesEl.innerHTML = items
+    .map((b) => {
+      const tone = b.tone || 'neutral';
+      const label = escapeHtml(b.label || '');
+      const value = escapeHtml(b.value || '');
+      return `
+        <span class="badge badge--${tone}" aria-label="${label}: ${value}">
+          <span class="badgeLabel">${label}</span>
+          <span class="badgeValue">${value}</span>
+        </span>
+      `;
+    })
+    .join('');
+}
+
 function setResultView(payload) {
   const jsonEl = document.getElementById('result-json');
-  const badgesEl = document.getElementById('result-badges');
-  if (!jsonEl || !badgesEl) return;
+  if (!jsonEl) return;
 
-  badgesEl.innerHTML = '';
+  state.currentPayload = payload || null;
 
   if (!payload) {
-    jsonEl.textContent = '';
+    state.currentJsonText = '';
+    jsonEl.textContent = 'No output yet.';
+    renderBadges(null);
     return;
   }
 
-  const { input, result, error } = payload;
+  const { result, error } = payload;
 
   if (error) {
     const msg = String(error && error.stack ? error.stack : error);
-    badgesEl.innerHTML =
-      '<span class="badge badge--warn"><span class="badgeLabel">Error</span><span class="badgeValue">Check output</span></span>';
-    jsonEl.innerHTML = escapeHtml(
-      JSON.stringify({ input, error: msg }, null, 2)
-    );
+    state.currentJsonText = JSON.stringify({ error: msg }, null, 2);
+    jsonEl.textContent = state.currentJsonText;
+    renderBadges(null);
     return;
   }
 
-  const badges = inferBadges(result);
-  badgesEl.innerHTML = badges
-    .map(
-      (b) =>
-        `<span class="badge badge--${b.tone}"><span class="badgeLabel">${escapeHtml(
-          b.label
-        )}</span><span class="badgeValue">${escapeHtml(b.value)}</span></span>`
-    )
-    .join('');
-
-  jsonEl.innerHTML = escapeHtml(JSON.stringify({ input, result }, null, 2));
+  // AC-UI-003: JSON viewer must match the classifier output object exactly.
+  state.currentJsonText = JSON.stringify(result, null, 2);
+  jsonEl.textContent = state.currentJsonText;
+  renderBadges(result);
 }
 
 function renderHistory() {
@@ -297,19 +322,37 @@ function renderHistory() {
   emptyEl.style.display = 'none';
 
   listEl.innerHTML = state.history
-    .map((item) => {
+    .map((item, idx) => {
       const isActive = item.id === state.activeId;
       const title = item.input.trim().replace(/\s+/g, ' ').slice(0, 120);
-      const subtitle = `${formatTime(item.ts)} • ${
-        item.badges?.[0]?.value ? item.badges[0].value : 'Result'
-      }`;
+      const subtitle = `${formatTime(item.ts)} • Activate to load`;
+
+      const badgeInfo = inferBadges(item.result);
+      const previewBadges = [badgeInfo.type, badgeInfo.risk, badgeInfo.mode]
+        .filter(Boolean)
+        .map((b) => {
+          const tone = b.tone || 'neutral';
+          return `
+            <span class="miniBadge miniBadge--${tone}">
+              <span class="miniBadgeLabel">${escapeHtml(b.label)}:</span>
+              <span class="miniBadgeValue">${escapeHtml(b.value)}</span>
+            </span>
+          `;
+        })
+        .join('');
+
+      const ariaLabel = `History item ${idx + 1}. ${title || 'Empty request'}.`;
 
       return `
         <li class="historyItem" data-id="${escapeHtml(item.id)}">
-          <button type="button" class="historyButton" aria-pressed="${
-            isActive ? 'true' : 'false'
-          }">
+          <button
+            type="button"
+            class="historyButton"
+            aria-pressed="${isActive ? 'true' : 'false'}"
+            aria-label="${escapeHtml(ariaLabel)}"
+          >
             <div class="historyTitle">${escapeHtml(title || '(empty)')}</div>
+            <div class="historyBadges" aria-hidden="true">${previewBadges}</div>
             <div class="historyMeta">${escapeHtml(subtitle)}</div>
           </button>
         </li>
@@ -326,7 +369,12 @@ function getActiveItem() {
 function setActiveHistory(id) {
   state.activeId = id;
   const active = getActiveItem();
-  if (active) setResultView(active);
+  if (active) {
+    const input = document.getElementById('request-input');
+    if (input) input.value = active.input || '';
+    setResultView(active);
+    setInputValidation('');
+  }
   renderHistory();
 }
 
@@ -338,10 +386,13 @@ async function classifyNow(text) {
 
   const trimmed = String(text || '').trim();
   if (!trimmed) {
+    setInputValidation('Please enter a request before classifying.');
     setStatus('idle', 'Enter a request to classify');
     return;
   }
 
+  setInputValidation('');
+  setCopyFeedback('', '');
   setStatus('classifying', 'Classifying…');
 
   try {
@@ -350,8 +401,7 @@ async function classifyNow(text) {
       id: makeId(),
       ts: Date.now(),
       input: trimmed,
-      result,
-      badges: inferBadges(result)
+      result
     };
 
     state.history = [item, ...state.history].slice(0, 50);
@@ -382,6 +432,7 @@ function bindEvents() {
     sampleBtn.addEventListener('click', () => {
       input.value = SAMPLE_TEXT;
       input.focus();
+      setInputValidation('');
       setStatus('ready', 'Sample inserted');
     });
   }
@@ -390,8 +441,43 @@ function bindEvents() {
     clearBtn.addEventListener('click', () => {
       input.value = '';
       input.focus();
+      setInputValidation('');
+      setCopyFeedback('', '');
       setResultView(null);
       setStatus('ready', 'Cleared');
+    });
+  }
+
+  const copyBtn = document.getElementById('copy-json-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const text = String(state.currentJsonText || '');
+      if (!text) {
+        setCopyFeedback('error', 'Nothing to copy');
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopyFeedback('ok', 'Copied');
+      } catch {
+        try {
+          // Fallback for restricted environments
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          if (!ok) throw new Error('execCommand copy failed');
+          setCopyFeedback('ok', 'Copied');
+        } catch {
+          setCopyFeedback('error', 'Copy failed');
+        }
+      }
     });
   }
 
@@ -400,6 +486,12 @@ function bindEvents() {
   }
 
   if (input) {
+    input.addEventListener('input', () => {
+      // Clear inline validation as the user types.
+      const v = String(input.value || '').trim();
+      if (v) setInputValidation('');
+    });
+
     input.addEventListener('keydown', (e) => {
       const isEnter = e.key === 'Enter';
       const isAccel = e.ctrlKey || e.metaKey;
@@ -437,12 +529,14 @@ async function init() {
 
     // Seed result panel with a friendly hint
     setResultView({
-      input: '(hint)',
-      result: { message: 'Paste a request and click “Classify”.' }
+      result: {
+        message: 'Paste a request and click “Classify”.',
+        note: 'Tip: Ctrl/⌘ + Enter to classify.'
+      }
     });
   } catch (err) {
     setStatus('error', 'Classifier failed to load');
-    setResultView({ input: '(init)', error: err });
+    setResultView({ error: err });
   }
 }
 

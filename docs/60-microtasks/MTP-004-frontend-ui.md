@@ -146,8 +146,9 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
       - `index.html`
       - `ui/main.js`
 
-- [ ] MT-007 - Implement MVP UI layout + styling (card-based)
+- [x] MT-007 - Implement MVP UI layout + styling (card-based)
   - Owner: Code Author
+  - Status: **COMPLETED** (stakeholder-approved closure; validator marked NEEDS_CLARITY)
   - Purpose: Implement the UX layout and “vistoso” styling without external component library.
   - Allowed files:
     - `ui/**`
@@ -164,6 +165,20 @@ Dependency: `docs/40-specs/SPC-001-foundry-request-classification.md`
     - Meets `SPC-002` UX requirements (Layout + Visual design).
   - Expected evidence:
     - UI source files + screenshots included in PR description or validator evidence doc (path chosen by Validator).
+  - Evidence (closure record):
+    - User-provided changed files for this micro-task closure:
+      - `docs/60-microtasks/MTP-004-frontend-ui.md` (this MT closure update)
+      - `ui/main.js`
+      - `ui/styles.css`
+    - Delivery summary:
+      - Implemented an MVP **card-based layout** for the Foundry Request Board UI and accompanying **styling/theme** ("vistoso") via updates to `ui/main.js` + `ui/styles.css`.
+    - Validator outcome: **NEEDS_CLARITY**
+      - Static/behavioral acceptance criteria were reported as **PASS**.
+      - Validator could not conclusively prove "only allowlisted files changed" because **git diff/status evidence was not provided** (no authoritative working-tree proof).
+    - Stakeholder override / approval to close:
+      - Stakeholder (user) explicitly approved formally closing MT-007 despite missing git diff/status proof.
+    - Follow-up recommendation (still advised):
+      - Capture `git status --porcelain` and relevant `git diff` output (or a validator evidence report under `docs/30-validation/**`) to fully substantiate allowlist compliance.
 
 - [ ] MT-008 - Wire classification + output rendering
   - Owner: Code Author
