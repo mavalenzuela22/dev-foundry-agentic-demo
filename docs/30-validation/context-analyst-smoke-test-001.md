@@ -18,13 +18,13 @@ Validate that the Context Analyst can use the configured MCP filesystem safely a
 
 ## Repository Under Test
 
-`/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+`<repo-root>`
 
 ## MCP Configuration Observed
 
 Allowed directory:
 
-- `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+- `<repo-root>`
 
 The MCP was configured to point only to the demo repository for this smoke test.
 
@@ -33,7 +33,7 @@ The MCP was configured to point only to the demo repository for this smoke test.
 What is this repository about, what agent documents exist, and what is the current role of Foundry Request Board?
 
 Repository root:
-`/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+`<repo-root>`
 
 Please inspect only README.md and docs/.
 

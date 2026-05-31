@@ -57,7 +57,7 @@ Original Request:
 Add support for classifying documentation-only requests as low risk and ready for bounded execution.
 
 Repository Root:
-`/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+`<repo-root>`
 
 Governance Decision:
 APPROVED
@@ -170,7 +170,7 @@ Request Summary:
 - Implemented a pure deterministic request classifier that detects documentation-only requests as low risk and bounded-execution-ready, with tests for documentation-only, mixed, and ambiguous cases.
 
 Allowed Directory Check:
-- allowed directory: `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+- allowed directory: `<repo-root>`
 - repository root is inside the allowed directories: Yes
 
 Governance Confirmation:

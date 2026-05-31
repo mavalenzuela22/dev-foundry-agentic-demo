@@ -48,7 +48,7 @@ Original Request:
 Create the minimal greenfield scaffold needed for the Foundry Request Board classifier implementation.
 
 Repository Root:
-`/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+`<repo-root>`
 
 Governance Decision:
 APPROVED
@@ -144,7 +144,7 @@ Request Summary:
 - Create minimal greenfield scaffold (`src/` and `tests/` with `.gitkeep` placeholders) for Foundry Request Board classifier implementation.
 
 Allowed Directory Check:
-- allowed directory: `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+- allowed directory: `<repo-root>`
 - repository root is inside the allowed directories: YES
 
 Governance Confirmation:
@@ -155,16 +155,16 @@ Governance Confirmation:
 - forbidden files and operations acknowledged and not performed
 
 Directories Checked:
-- `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo/src`
-- `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo/tests`
+- `<repo-root>/src`
+- `<repo-root>/tests`
 
 Directories Created:
-- `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo/src`
-- `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo/tests`
+- `<repo-root>/src`
+- `<repo-root>/tests`
 
 Placeholder Files Created:
-- `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo/src/.gitkeep`
-- `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo/tests/.gitkeep`
+- `<repo-root>/src/.gitkeep`
+- `<repo-root>/tests/.gitkeep`
 
 Not Changed:
 - No application or test code added.

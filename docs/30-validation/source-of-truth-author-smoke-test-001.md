@@ -48,7 +48,7 @@ Original Request:
 Create the minimal source-of-truth spine for Agentic Slice 001 so the demo reflects Spec-Driven Development instead of governed vibe-coding.
 
 Repository Root:
-`/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+`<repo-root>`
 
 Authoring Purpose:
 Create source-of-truth documents that formalize the already validated Foundry Request Board documentation-only classifier behavior and establish a baseline for future source-of-truth-first execution.
@@ -129,7 +129,7 @@ Mode:
 - Hybrid, retroactive hardening after Agentic Slice 001.
 
 Allowed Directory Check:
-- allowed directory: `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+- allowed directory: `<repo-root>`
 - repository root is inside allowed directories: Yes
 
 Authoring Scope:

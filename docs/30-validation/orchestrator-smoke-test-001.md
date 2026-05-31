@@ -25,7 +25,7 @@ Dev Foundry Orchestrator
 Dime cómo va este repo y cuál es el siguiente paso seguro.
 
 Repo:
-`/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+`<repo-root>`
 
 No modifiques archivos.
 

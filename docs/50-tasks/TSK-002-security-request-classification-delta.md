@@ -12,7 +12,7 @@ This task belongs to Foundry Request Board product behavior. It does not define 
 
 ## Historical Note
 
-This task was originally written as a spec-first delta for future implementation. The delta has since been implemented, tested, validated, and closed through the related micro-task packs and validation evidence.
+This task was originally written as a spec-first delta before implementation. The delta has since been implemented, tested, validated, and closed through the related micro-task packs and validation evidence.
 
 This document now describes the completed product task and its traceability.
 

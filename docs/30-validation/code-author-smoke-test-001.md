@@ -84,7 +84,7 @@ Request Summary:
 - Implement a deterministic classifier that recognizes documentation-only requests as low risk and bounded-execution-ready, with tests and optional docs update.
 
 Allowed Directory Check:
-- allowed directory: `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo`
+- allowed directory: `<repo-root>`
 - repository root is inside the allowed directories: Yes
 
 Governance Confirmation:
@@ -111,8 +111,8 @@ Not Changed:
 - docs/00-product/product-direction.md, because no change was needed or attempted.
 
 Risks or Notes:
-- `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo/src` does not exist.
-- `/Users/martin.valenzuela/Development/dev-foundry-agentic-demo/tests` does not exist.
+- `<repo-root>/src` does not exist.
+- `<repo-root>/tests` does not exist.
 - With the current toolset and constraints, the agent cannot create these directories.
 
 Recommended Next Step:
