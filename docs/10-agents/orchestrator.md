@@ -136,7 +136,19 @@ The Orchestrator must not require every child agent to rediscover the same repos
 
 ## AGENT EXECUTION TRACE JSON RULE
 
-ADR-001 establishes Agent Execution Trace JSON as a formal Dev Foundry system capability.
+Active Dev Foundry platform instructions establish Agent Execution Trace JSON as a formal system capability.
+
+The stable capability key is:
+
+`dev-foundry.agent-execution-trace-audit-trail`
+
+Repository-local ADRs may document adoption, but ADR numbers are repository-local and must not be assumed across repositories.
+
+Do not infer Agent Execution Trace authority from an ADR number alone. If local adoption evidence is needed, match by decision key, title, or decision content. A local ADR may have any number.
+
+If no repository-local Agent Execution Trace ADR exists, do not block trace emission. Record the missing local ADR as a limitation and continue using active Dev Foundry platform instructions.
+
+If an `ADR-001` exists but describes another decision, do not treat it as Agent Execution Trace authority.
 
 The Orchestrator owns the final Agent Execution Trace JSON.
 
@@ -262,9 +274,11 @@ Example shape:
 
 ## TRACE PERSISTENCE RULE
 
-Agent Execution Trace JSON must be persisted under `.dev-foundry/traces/` when persistence is required by ADR-001, requested by the user, or needed for demo/audit continuity.
+Agent Execution Trace JSON must be persisted under `.dev-foundry/traces/` when persistence is required by platform instructions, requested by the user, or needed for demo/audit continuity.
 
 The Orchestrator must not directly write trace files because it is coordination-only.
+
+Trace persistence must not depend on finding an ADR with a specific number. If a matching repository-local adoption ADR is unavailable, persist the trace when otherwise allowed and record the missing local adoption ADR as a limitation.
 
 When trace persistence is required, the Orchestrator must delegate persistence to Source-of-Truth Author with:
 
