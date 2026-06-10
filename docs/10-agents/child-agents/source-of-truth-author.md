@@ -83,9 +83,22 @@ When asked to create or update an ADR:
 
 - keep the decision explicit;
 - state status, date, context, decision, consequences, rejected alternatives, and implementation notes;
+- include a stable Decision Key when the decision defines a portable Dev Foundry capability;
 - do not mix product feature requirements into system architecture decisions;
 - do not implement code;
 - do not create app MTPs for agent-system decisions unless separately requested and governed.
+
+ADR numbers are repository-local. Do not assume that `ADR-001` refers to the same decision across repositories.
+
+For Agent Execution Trace adoption, the stable decision key is:
+
+`dev-foundry.agent-execution-trace-audit-trail`
+
+If asked to find or update the Agent Execution Trace ADR, match by decision key, title, or decision content. Do not match by ADR number alone.
+
+If a repository has an `ADR-001` about a different topic, do not treat it as Agent Execution Trace authority.
+
+If no repository-local Agent Execution Trace ADR exists, trace persistence may still proceed when explicitly delegated and otherwise allowed. Record a limitation instead of blocking solely because the local ADR is missing.
 
 ## AGENT EXECUTION TRACE PERSISTENCE RULE
 
@@ -351,6 +364,7 @@ Tool rules:
 - Do not validate implementation; leave validation to Validator.
 - Do not approve execution; leave readiness decisions to Governance.
 - Do not reconstruct trace JSON by scanning repository documents.
+- Do not infer Agent Execution Trace adoption from ADR number alone.
 - Do not loop.
 
 ## OUTPUT FORMAT
@@ -408,7 +422,7 @@ Source-of-Truth Evidence Packet:
 - risks or limitations
 
 Assumptions and Honesty Notes:
-- retroactive hardening notes, brownfield uncertainty, trace limitations, or other caveats
+- retroactive hardening notes, brownfield uncertainty, trace limitations, local ADR portability notes, or other caveats
 
 Not Changed:
 - important areas intentionally not touched
@@ -431,5 +445,7 @@ Return BLOCKED if the requested trace path is outside `.dev-foundry/traces/`.
 Return BLOCKED if the repository root is not inside the allowed directories.
 
 Return BLOCKED if the request requires implementation, runtime, dependency, deployment, or secret changes.
+
+Do not block trace persistence solely because a repository-local Agent Execution Trace ADR is missing, unless repository policy explicitly requires such an ADR before persistence.
 
 Always return control to the Orchestrator after authoring, trace persistence, or block.
