@@ -12,6 +12,24 @@ ACCEPTED
 
 Dev Foundry project owner
 
+## Decision Key
+
+`dev-foundry.agent-execution-trace-audit-trail`
+
+## Portability Note
+
+This ADR number is local to this repository.
+
+Other repositories may already have an `ADR-001` that describes a completely different decision. Dev Foundry agents and tools must not infer Agent Execution Trace authority from an ADR number alone.
+
+The stable capability identifier is the Decision Key:
+
+`dev-foundry.agent-execution-trace-audit-trail`
+
+Repository-local adoption may be documented under any ADR number, as long as the decision key, title, or decision content clearly identifies the Agent Execution Trace Audit Trail capability.
+
+Absence of a repository-local ADR does not disable trace emission. Trace emission is a Dev Foundry platform capability defined by the active Orchestrator instructions. A local ADR documents adoption and repository-specific persistence rules.
+
 ## Context
 
 Dev Foundry uses source-of-truth artifacts, task documents, micro-task packs, validation records, and agent prompts to govern Alita-powered agentic execution.
@@ -49,6 +67,24 @@ Summary:
 - Runtime control: Flow Evidence Manifest.
 - Programmatic audit: Agent Execution Trace JSON.
 - Governed narrative: source-of-truth documents.
+
+## Repository-Local ADR Resolution
+
+When a Dev Foundry agent needs to determine whether a repository already documents Agent Execution Trace adoption, it must not rely on ADR number.
+
+Valid matching signals include:
+
+- Decision Key: `dev-foundry.agent-execution-trace-audit-trail`;
+- title containing `Agent Execution Trace` or equivalent;
+- decision content establishing Agent Execution Trace JSON as a machine-readable audit trail;
+- decision content assigning trace consolidation to the Orchestrator;
+- decision content assigning persistence under `.dev-foundry/traces/` or an explicitly approved equivalent local trace path.
+
+If no matching local ADR exists, agents may still emit traces from active Dev Foundry platform instructions and should record a limitation such as:
+
+`Repository-local Agent Execution Trace adoption ADR was not found; trace behavior is governed by active Dev Foundry platform instructions.`
+
+If an `ADR-001` exists but addresses a different decision, agents must not treat it as Agent Execution Trace authority.
 
 ## Trace Emission Scope
 
@@ -202,6 +238,7 @@ Tradeoffs:
 - Trace persistence adds files under `.dev-foundry/traces/`.
 - Trace schema must be kept stable enough for tooling.
 - Trace emission must avoid leaking sensitive data.
+- Repositories may use different ADR numbers for the same capability, so agents must resolve local adoption by decision key, title, or content rather than ADR number.
 
 Rejected alternatives:
 
@@ -217,6 +254,9 @@ Rejected alternatives:
 4. Do not persist traces.
    - Rejected because the trace is now a formal programmatic audit capability, not only a demo convenience.
 
+5. Treat `ADR-001` as the portable identifier for this capability.
+   - Rejected because ADR numbers are repository-local and may identify unrelated decisions in other repositories.
+
 ## Implementation Notes
 
 The Orchestrator prompt must require Agent Execution Trace JSON for meaningful delegated or governed flows.
@@ -226,6 +266,10 @@ The Orchestrator must include trace persistence intent in the Flow Evidence Mani
 Source-of-Truth Author must be allowed to persist trace JSON under `.dev-foundry/traces/` when explicitly delegated by the Orchestrator.
 
 Agent Trace Guard should consume pasted or persisted Agent Execution Trace JSON and must not infer flow behavior by scanning the repository.
+
+Agents must not assume that `ADR-001` refers to this capability outside this repository.
+
+When local adoption evidence is needed, agents must look for the stable decision key `dev-foundry.agent-execution-trace-audit-trail`, a matching title, or matching decision content.
 
 ## References
 
