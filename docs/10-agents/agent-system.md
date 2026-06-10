@@ -6,61 +6,109 @@ ACTIVE AGENT-SYSTEM OVERVIEW
 
 ## Purpose
 
-This document describes the Dev Foundry Alita-powered agent system used to operate the Foundry Request Board demo.
+This document describes the portable Dev Foundry Alita-powered agent system used to operate governed software delivery workflows.
 
-It is an agent-system document. It is not a Foundry Request Board product spec, task, or micro-task pack.
+It is an agent-system document. It is not a product spec, task, or micro-task pack.
 
 ## Scope Boundary
 
 There are two separate workstreams:
 
-1. Foundry Request Board product/app work.
+1. Product/application work for the current repository.
 2. Dev Foundry Alita-powered agent-system operation and hardening.
 
-Foundry Request Board product work is governed through app source-of-truth artifacts such as:
+Product/application work is governed through repository source-of-truth artifacts when present.
 
+Dev Foundry Alita-powered agent-system work is governed through agent-system artifacts such as:
+
+- `docs/10-agents/`
+- `docs/20-decisions/`
+- `docs/70-agent-system/`
+- `.dev-foundry/traces/`
+
+Do not track agent-system hardening as application `SPC/TSK/MTP` work unless the user explicitly requests product/demo work and Governance approves that scope.
+
+## Governed Artifact Taxonomy
+
+Artifact class recognition is prompt-defined, not repository-document-defined.
+
+Repository-local source-of-truth artifacts document project-specific decisions and evidence. They do not define the agent system's basic routing logic.
+
+Governed artifact classes include:
+
+- `OVR`: overview, product framing, system framing, or domain overview.
+- `ARC`: architecture description, architecture model, or structural system design.
+- `ADR`: architecture decision record or durable design decision.
+- `RDM`: roadmap, release decision material, or planning decision record when used.
+- `SPC`: behavior specification, feature specification, or system requirement.
+- `DAT`: data contract, schema, data model, data classification, or data lineage artifact.
+- `TSK`: task-level work definition.
+- `MTP`: micro-task execution package.
+- `OPS`: operating model, operational procedure, runbook, or workflow rule.
+- `VAL`: validation evidence, audit evidence, closure record, or evidence summary.
+- `TRACE`: Agent Execution Trace JSON under `.dev-foundry/traces/`.
+
+Default governed paths include, when present:
+
+- `docs/00-product/`
+- `docs/10-agents/`
+- `docs/20-decisions/`
+- `docs/30-validation/`
 - `docs/40-specs/`
 - `docs/50-tasks/`
 - `docs/60-microtasks/`
-
-Dev Foundry Alita-powered agent-system work is governed through:
-
-- `docs/10-agents/`
 - `docs/70-agent-system/`
+- `docs/80-operations/`
+- `docs/**/OVR-*.md`
+- `docs/**/ARC-*.md`
+- `docs/**/ADR-*.md`
+- `docs/**/RDM-*.md`
+- `docs/**/SPC-*.md`
+- `docs/**/DAT-*.md`
+- `docs/**/TSK-*.md`
+- `docs/**/MTP-*.md`
+- `docs/**/OPS-*.md`
+- `docs/**/VAL-*.md`
+- `.dev-foundry/traces/*.json`
 
-Do not track agent-system hardening as app `SPC/TSK/MTP` work.
+If a repository does not contain one of these artifact classes, agents must not invent it unless the approved source-of-truth work requires creating it.
 
 ## Operating Model
 
 The active operating model is:
 
-`User -> Orchestrator -> Child Agents -> Evidence -> Orchestrator -> Source-of-Truth Closure -> Validation`
+`User -> Orchestrator -> Child Agents -> Evidence -> Orchestrator -> Source-of-Truth Closure -> Validation -> Trace`
 
 The Orchestrator is the conversation and coordination layer.
 
 Child agents are specialist agents with bounded responsibilities.
 
-The Source-of-Truth Author owns governed documents and evidence closure.
+The Source-of-Truth Author owns governed artifacts and evidence closure.
 
 The Validator verifies outcomes using approved evidence and read-only inspection.
+
+The Orchestrator emits Agent Execution Trace JSON for meaningful delegated or governed flows.
 
 ## Active Agents
 
 ### 1. Dev Foundry Orchestrator
 
-Receives the engineer request, clarifies intent, resolves routing, maintains the Flow Evidence Manifest, delegates to child agents, and returns the final report.
+Receives the engineer request, clarifies intent, resolves routing, maintains the Flow Evidence Manifest, delegates to child agents, emits Agent Execution Trace JSON, and returns the final report.
 
 The Orchestrator may use read-only tools when assigned, but it must not directly modify files.
 
 Key responsibilities:
 
 - conversational intake;
+- governed artifact classification;
 - micro-task routing;
 - artifact-owner routing;
 - Flow Evidence Manifest ownership;
 - scope-layer separation;
 - child-agent delegation;
 - MTP closure delegation;
+- Agent Execution Trace JSON consolidation;
+- trace persistence delegation;
 - final user-facing report.
 
 ### 2. Context Analyst
@@ -69,21 +117,27 @@ Performs focused read-only repository inspection when the Orchestrator needs dee
 
 Context Analyst should not be the default reader for every workflow when the Orchestrator already has enough context.
 
+Context Analyst must not use failed search as permission for repo-wide reading.
+
 ### 3. Source-of-Truth Author
 
-Creates and updates governed source-of-truth and evidence documents.
+Creates and updates governed source-of-truth, decision, architecture, data, operations, validation, evidence, hardening, and trace persistence artifacts.
 
-Owned artifacts include:
+Owned artifact classes include:
 
-- specs;
-- tasks;
-- micro-task packs;
-- source-of-truth maps;
-- validation evidence;
-- slice summaries;
-- brownfield baselines;
-- agent-system hardening documents;
-- MTP closure evidence.
+- OVR;
+- ARC;
+- ADR;
+- RDM;
+- SPC;
+- DAT;
+- TSK;
+- MTP;
+- OPS;
+- VAL;
+- TRACE.
+
+Source-of-Truth Author must not write implementation code or executable tests.
 
 ### 4. Governance Agent
 
@@ -92,6 +146,7 @@ Checks whether a request is ready for bounded execution.
 Governance validates:
 
 - clarity;
+- governed artifact classification;
 - owner-agent compatibility;
 - scope layers;
 - allowed files;
@@ -104,15 +159,15 @@ Governance is decision-only and should normally require zero filesystem reads wh
 
 Creates approved greenfield project structure, directories, and placeholder files required to enable bounded implementation work.
 
-Scaffolder does not write application logic or tests.
+Scaffolder does not write application logic, tests, or governed source-of-truth content unless explicitly approved as placeholder-only scaffold.
 
 ### 6. Code Author
 
-Applies bounded implementation or test changes after Governance approval.
+Applies bounded implementation or executable test changes after Governance approval.
 
 Code Author owns implementation artifacts only, such as source code and executable tests.
 
-Code Author must not own governed source-of-truth or evidence documents.
+Code Author must not own governed artifacts, including OVR, ARC, ADR, RDM, SPC, DAT, TSK, MTP, OPS, VAL, or TRACE.
 
 ### 7. Validator
 
@@ -147,7 +202,22 @@ Minimum contents:
 - governance decision packet;
 - child-agent evidence packets;
 - validation mode;
-- known limitations.
+- known limitations;
+- trace persistence intent when required.
+
+## Agent Execution Trace JSON
+
+Agent Execution Trace JSON is the programmatic audit trail for meaningful delegated or governed Dev Foundry flows.
+
+The Orchestrator owns trace consolidation.
+
+Trace files are persisted under `.dev-foundry/traces/` when required or requested.
+
+The stable portable capability key is:
+
+`dev-foundry.agent-execution-trace-audit-trail`
+
+Repository-local ADR numbers must not be used as portable identifiers for this capability.
 
 ## Scope Layers
 
@@ -159,7 +229,7 @@ Files the execution agent may modify.
 
 ### Source-of-Truth Closure Scope
 
-Files Source-of-Truth Author may modify to record evidence, close an MT, or update traceability.
+Files Source-of-Truth Author may modify to record evidence, close an MT, persist a trace, or update traceability.
 
 ### Validation Read Scope
 
@@ -197,8 +267,6 @@ Evidence packets should include files read, files modified, files created, files
 
 ## No-Diff Validation Mode
 
-The current Alita environment does not provide terminal-based `git diff` during agent execution.
-
 When git diff or changed-files tooling is unavailable:
 
 - Validator must not attempt repo-wide modified-file discovery.
@@ -224,7 +292,7 @@ Default expectation:
 - Orchestrator resolves once where possible.
 - Governance decides from the manifest.
 - Code Author reads target files only.
-- Source-of-Truth Author reads direct document targets only.
+- Source-of-Truth Author reads direct governed document or trace targets only.
 - Validator reads validation target files only.
 - Context Analyst is used for deeper ambiguity, not every small routing lookup.
 
@@ -232,14 +300,14 @@ Default expectation:
 
 - Clarity precedes execution.
 - Source-of-truth governs implementation.
+- Artifact class recognition is prompt-defined, not repository-document-defined.
 - Artifact ownership precedes action verb.
 - Execution must remain bounded.
 - Evidence must be structured.
 - Validation must be honest about environment limits.
 - MCP filesystem usage should be minimal and purposeful.
+- Agent Execution Trace JSON provides the programmatic audit trail.
 
 ## Current Demo Boundary
 
-Foundry Request Board is the guinea pig application.
-
-The real experiment is whether the Alita-powered Dev Foundry agents can converse, route, govern, execute, validate, and preserve evidence under deterministic rules without overusing tools or mixing responsibilities.
+This repository may use Foundry Request Board as the guinea pig application, but the agent-system rules are intended to be portable across Dev Foundry repositories.
